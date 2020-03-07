@@ -185,7 +185,7 @@ public class VmUtilizationHistory implements UtilizationHistory {
         //The total power the Host is consuming (considering all running VMs)
         final double hostTotalPower = vm.getHost().getPowerModel().getPower(hostTotalCpuUsage);
 
-        return  vmCpuUsageFromHostUsage*hostTotalPower;
+        return  vmCpuUsageFromHostUsage*hostTotalPower;     
     }
 
     @Override

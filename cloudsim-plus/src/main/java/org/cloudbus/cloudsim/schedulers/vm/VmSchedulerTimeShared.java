@@ -22,7 +22,7 @@ import static java.util.stream.Collectors.toList;
  * that defines a policy to allocate one or more PEs from a PM to a VM, and allows sharing of PEs
  * by multiple VMs. <b>This class also implements 10% performance degradation due
  * to VM migration. It does not support over-subscription.</b>
- *
+ *   
  * <p>Each host has to use is own instance of a VmScheduler that will so
  * schedule the allocation of host's PEs for VMs running on it.</p>
  *

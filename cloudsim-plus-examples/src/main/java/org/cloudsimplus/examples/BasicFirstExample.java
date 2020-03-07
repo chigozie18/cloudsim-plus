@@ -4,7 +4,7 @@
  * http://cloudsimplus.org
  *
  *     Copyright (C) 2015-2018 Universidade da Beira Interior (UBI, Portugal) and
- *     the Instituto Federal de Educação Ciência e Tecnologia do Tocantins (IFTO, Brazil).
+ *     the Instituto Federal de EducaÃ§Ã£o CiÃªncia e Tecnologia do Tocantins (IFTO, Brazil).
  *
  *     This file is part of CloudSim Plus.
  *
@@ -105,7 +105,7 @@ public class BasicFirstExample {
             Host host = createHost();
             hostList.add(host);
         }
-
+        										
         //Uses a VmAllocationPolicySimple by default to allocate VMs
         return new DatacenterSimple(simulation, hostList);
     }
@@ -115,7 +115,7 @@ public class BasicFirstExample {
         //List of Host's CPUs (Processing Elements, PEs)
         for (int i = 0; i < HOST_PES; i++) {
             //Uses a PeProvisionerSimple by default to provision PEs for VMs
-            peList.add(new PeSimple(1000));
+            peList.add(new PeSimple(6000));
         }
 
         final long ram = 2048; //in Megabytes
@@ -136,7 +136,7 @@ public class BasicFirstExample {
         final List<Vm> list = new ArrayList<>(VMS);
         for (int i = 0; i < VMS; i++) {
             //Uses a CloudletSchedulerTimeShared by default to schedule Cloudlets
-            final Vm vm = new VmSimple(1000, VM_PES);
+            final Vm vm = new VmSimple(2000, VM_PES);
             vm.setRam(512).setBw(1000).setSize(10000);
             list.add(vm);
         }

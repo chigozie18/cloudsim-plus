@@ -60,7 +60,7 @@ import java.util.List;
  * They start at the same time and also considering they have the same length,
  * they finish together too.
  * However, each Cloudlet will take the double of the time
- * it would take if there were enough PEs for all of them.
+ * it would take if there werb e enough PEs for all of them.
  *
  * @author Manoel Campos da Silva Filho
  * @since CloudSim Plus 1.2.1

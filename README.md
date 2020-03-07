@@ -40,15 +40,29 @@
 [![GPL licensed](https://img.shields.io/badge/license-GPL-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 
-CloudSim Plus is a modern, up-to-date, full-featured and fully documented simulation framework. It's easy to use and extend, enabling modeling, simulation, 
+CloudSim Plus is a full-featured, highly extensible simulation framework enabling modeling, simulation, 
 and experimentation of Cloud computing infrastructures and application services. 
-It allows developers to focus on specific system design issues to be investigated, 
+It allows users to focus on specific system design issues to be investigated, 
 without concerning the low-level details related to Cloud-based infrastructures and services.
  
-CloudSim Plus is a fork of CloudSim 3, 
-re-engineered primarily to avoid code duplication,
-provide [code reusability](https://en.wikipedia.org/wiki/Code_reuse) and ensure 
-compliance with software engineering principles and recommendations for extensibility improvements and accuracy. It's currently the state-of-the-art in cloud computing simulation framework. 
+Cloud computing is the leading technology for delivery of reliable, secure, fault-tolerant, sustainable,
+and scalable computational services. 
+For assurance of such characteristics in cloud systems under development, 
+it is required timely, repeatable, and controllable methodologies for evaluation of new cloud applications and policies, 
+before actual development of cloud products. 
+Because utilization of real testbeds limits the experiments to the scale of the testbed and makes the reproduction of results cumbersome, 
+computer-base simulation may constitute an interesting tool. 
+This project is suitable to quickly develop such simulation scenarios and run them quickly, in a typical PC. 
+
+CloudSim Plus is a fork of [CloudSim 3](https://github.com/Cloudslab/cloudsim/tree/20a7a55e537181489fcb9a2d42a3e539db6c0318), 
+re-engineered primarily to avoid code duplication. 
+It provides [code reusability](https://en.wikipedia.org/wiki/Code_reuse) and ensures 
+compliance with software engineering principles and recommendations for extensibility improvements. 
+It focuses on usage of software engineering standards and recommendations such as 
+[Design Patterns](https://en.wikipedia.org/wiki/Software_design_pattern), 
+[SOLID principles](https://en.wikipedia.org/wiki/SOLID_(object-oriented_design)) 
+and other ones such as [KISS](https://en.wikipedia.org/wiki/KISS_principle) 
+and [DRY](https://pt.wikipedia.org/wiki/Don't_repeat_yourself).
 
 The efforts dedicated to this project have been recognized by the [EU/Brasil Cloud FORUM](https://eubrasilcloudforum.eu). 
 A post about CloudSim Plus is available at 
@@ -69,7 +83,7 @@ and by the [Brazilian foundation Coordenação de Aperfeiçoamento de Pessoal de
 CloudSim Plus provides a lot of exclusive features, from the most basic ones to build simple simulations, 
 to advanced features for simulating more realistic cloud scenarios: 
 
-1. It is easier to use. [A complete and easy-to-understand simulation scenario can be built in few lines of code.](#5-a-minimal-and-complete-simulation-example) 
+1. It is easier to use. [A complete and easy-to-understand simulation scenario can be built in few lines of code.](#a-minimal-and-complete-simulation-example) 
 1. Process trace files from [Google Cluster Data](https://github.com/google/cluster-data/blob/master/ClusterData2011_2.md) 
    creating Hosts and Cloudlets (tasks). A script to download the trace files is available at [download-google-cluster-data.sh](script/download-google-cluster-data.sh). Examples are available [here](cloudsim-plus-examples/src/main/java/org/cloudsimplus/examples/googletraces) ([#149](https://github.com/manoelcampos/cloudsim-plus/issues/149)).
 1. [Vertical VM Scaling](/cloudsim-plus-examples/src/main/java/org/cloudsimplus/examples/autoscaling/VerticalVmCpuScalingExample.java) that performs on-demand up and down allocation of VM resources such as Ram, Bandwidth and PEs (CPUs) ([#7](https://github.com/manoelcampos/cloudsim-plus/issues/7));
@@ -136,11 +150,10 @@ The light yellow ones were introduced just to better organize existing CloudSim 
 <p align="right"><a href="#top">:arrow_up:</a></p>
 
 # 4. How to Use CloudSim Plus 
-There are 4 ways to use CloudSim Plus. It can be downloaded and executed: 
-(i) downloading a zip file using the button at the top of this page;
-(ii) from the command line; 
-(iii) directly from some IDE; 
-(iv) from [Maven Central](https://maven-badges.herokuapp.com/maven-central/org.cloudsimplus/cloudsim-plus) 
+There are 3 ways to use CloudSim Plus. It can be downloaded and executed: 
+(i) directly from some IDE; 
+(ii) from the command line; or 
+(iii) from [Maven Central](https://maven-badges.herokuapp.com/maven-central/org.cloudsimplus/cloudsim-plus) 
 since you include it as a dependency inside your own project.
 
 You can watch the video below ([high quality version here](https://youtu.be/k2enNoxTYVw)) 
@@ -156,7 +169,7 @@ at a terminal.
 The project has a [bash script](script/bootstrap.sh) you can use to build and run CloudSim Plus examples. 
 This is a script for Unix-like systems such as Linux, FreeBSD and macOS.
 
-To run some example, type the following command at a terminal inside the project's root directory: `sh script/bootstrap.sh package.ExampleClassName`.
+To run some example type the command: `sh script/bootstrap.sh package.ExampleClassName`.
 For instance, to run the `CloudSimExample0` you can type: `sh script/bootstrap.sh org.cloudbus.cloudsim.examples.CloudSimExample0`. 
 
 The script checks if it is required to build the project, using maven in this case, making sure to download all dependencies. 
@@ -433,8 +446,8 @@ Here, it's presented a list of some projects based on CloudSim Plus, which trust
 If you want your project to be listed here, send us a Pull Request. Make sure your project has a descriptive README.
 
 - [PureEdgeSim: A simulation toolkit for performance evaluation of Fog and pure Edge computing environments.](https://github.com/CharafeddineMechalikh/PureEdgeSim)
-- [CloudSim Plus Py4j gateway: building CloudSim Plus simulations in Python.](https://github.com/pkoperek/cloudsimplus-gateway)
-- [CloudSim Plus Automation: defining CloudSim Plus simulation scenarios into a YAML file.](http://manoelcampos.github.io/cloudsim-plus-automation/)
+- [CloudSim Plus Py4j gateway: A py4j gateway for Cloud Sim Plus framework.](https://github.com/pkoperek/cloudsimplus-gateway)
+- [CloudSim Plus Automation: Human-Readable Scenario Specification for Automated Creation of Simulations on CloudSim and CloudSim Plus.](http://manoelcampos.github.io/cloudsim-plus-automation/)
 
 <p align="right"><a href="#top">:arrow_up:</a></p>
 
