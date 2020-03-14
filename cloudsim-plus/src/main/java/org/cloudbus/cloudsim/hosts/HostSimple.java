@@ -6,8 +6,8 @@
  */
 package org.cloudbus.cloudsim.hosts;
 
+import org.cloudbus.cloudsim.core.AbstractMachine;
 import org.cloudbus.cloudsim.core.ChangeableId;
-import org.cloudbus.cloudsim.core.Machine;
 import org.cloudbus.cloudsim.core.Simulation;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.datacenters.DatacenterPowerSupply;
@@ -288,7 +288,7 @@ public class HostSimple implements Host {
      * This value is used when the RAM capacity is not given in a Host constructor.
      */
     public static void setDefaultRamCapacity(final long defaultCapacity) {
-        Machine.validateCapacity(defaultCapacity);
+        AbstractMachine.validateCapacity(defaultCapacity);
         defaultRamCapacity = defaultCapacity;
     }
 
@@ -305,7 +305,7 @@ public class HostSimple implements Host {
      * This value is used when the BW capacity is not given in a Host constructor.
      */
     public static void setDefaultBwCapacity(final long defaultCapacity) {
-        Machine.validateCapacity(defaultCapacity);
+        AbstractMachine.validateCapacity(defaultCapacity);
         defaultBwCapacity = defaultCapacity;
     }
 
@@ -322,7 +322,7 @@ public class HostSimple implements Host {
      * This value is used when the Storage capacity is not given in a Host constructor.
      */
     public static void setDefaultStorageCapacity(final long defaultCapacity) {
-        Machine.validateCapacity(defaultCapacity);
+        AbstractMachine.validateCapacity(defaultCapacity);
         defaultStorageCapacity = defaultCapacity;
     }
 
@@ -414,22 +414,7 @@ public class HostSimple implements Host {
      * @return true if the Vm was placed into the host, false if the Host doesn't have enough resources to allocate the Vm
      */
     private boolean allocateResourcesForVm(final Vm vm, final boolean inMigration){
-        if (!storage.isAmountAvailable(vm.getStorage())) {
-            logAllocationError(vm, inMigration, "MB", this.getStorage(), vm.getStorage());
-            return false;
-        }
-
-        if (!ramProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedRam())) {
-            logAllocationError(vm, inMigration, "MB", this.getRam(), vm.getRam());
-            return false;
-        }
-
-        if (!bwProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedBw())) {
-            logAllocationError(vm, inMigration, "Mbps", this.getBw(), vm.getBw());
-            return false;
-        }
-
-        if (!vmScheduler.isSuitableForVm(vm)) {
+        if(!isSuitableForVm(vm, inMigration, true)) {
             return false;
         }
 
@@ -446,7 +431,7 @@ public class HostSimple implements Host {
         storage.allocateResource(vm.getStorage());
     }
 
-    private void logAllocationError(
+    private boolean logAllocationError(
         final Vm vm, final boolean inMigration, final String resourceUnit,
         final Resource pmResource, final Resource vmRequestedResource)
     {
@@ -456,6 +441,9 @@ public class HostSimple implements Host {
             "{}: {}: [{}] Allocation of {} to {} failed due to lack of {}. Required {} but there is {} available.",
             simulation.clockStr(), getClass().getSimpleName(), migration, vm, this,
             pmResource.getClass().getSimpleName(), vmRequestedResource.getCapacity(), msg);
+
+        //Always return false to indicate an error.
+        return false;
     }
 
     @Override
@@ -471,20 +459,23 @@ public class HostSimple implements Host {
 
     @Override
     public boolean isSuitableForVm(final Vm vm) {
-        return !isFailed() && hasEnoughResources(vm);
+        return isSuitableForVm(vm, false, false);
     }
 
-    private boolean hasEnoughResources(final Vm vm) {
-        /* Since && is a short-circuit operation,
-         * the more complex method calls are placed last.
-         * The freePesNumber and peList.size() are used just to improve performance
-         * and avoid calling the other complex methods
-         * when all PEs are used. */
-        return freePesNumber > 0 && peList.size() >= vm.getNumberOfPes() &&
-               storage.isAmountAvailable(vm.getStorage()) &&
-               ramProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedRam()) &&
-               bwProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedBw()) &&
-               vmScheduler.isSuitableForVm(vm, vm.getCurrentRequestedMips());
+    private boolean isSuitableForVm(final Vm vm, final boolean inMigration, final boolean showFailureLog) {
+        if (!storage.isAmountAvailable(vm.getStorage())) {
+            return showFailureLog && logAllocationError(vm, inMigration, "MB", this.getStorage(), vm.getStorage());
+        }
+
+        if (!ramProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedRam())) {
+            return showFailureLog && logAllocationError(vm, inMigration, "MB", this.getRam(), vm.getRam());
+        }
+
+        if (!bwProvisioner.isSuitableForVm(vm, vm.getCurrentRequestedBw())) {
+            return showFailureLog && logAllocationError(vm, inMigration, "Mbps", this.getBw(), vm.getBw());
+        }
+
+        return vmScheduler.isSuitableForVm(vm);
     }
 
     @Override
@@ -623,23 +614,14 @@ public class HostSimple implements Host {
         return vmScheduler.getTotalAllocatedMipsForVm(vm);
     }
 
-    /**
-     * Returns the maximum available MIPS among all the PEs of the host.
-     *
-     * @return max mips
-     */
-    protected double getMaxAvailableMips() {
-        return vmScheduler.getMaxAvailableMips();
-    }
-
     @Override
     public double getMips() {
         return peList.stream().mapToDouble(Pe::getCapacity).findFirst().orElse(0);
     }
 
     @Override
-    public double getAvailableMips() {
-        return vmScheduler.getAvailableMips();
+    public double getTotalAvailableMips() {
+        return vmScheduler.getTotalAvailableMips();
     }
 
     @Override
@@ -1161,7 +1143,7 @@ public class HostSimple implements Host {
      */
     private Function<Entry<Double, Double>, Double> vmUtilizationMapper(final UtilizationHistory utilizationHistory) {
         //The entry key is the time and the value is the percentage of the VM CPU that is being used
-        return entry ->  utilizationHistory.getVm().getExpectedHostCpuUtilization(entry.getValue());
+        return entry ->  getExpectedRelativeCpuUtilization(utilizationHistory.getVm(), entry.getValue());
     }
 
     @Override
@@ -1242,10 +1224,8 @@ public class HostSimple implements Host {
         }
 
         final VmStateHistoryEntry entry = new VmStateHistoryEntry(
-                currentTime,
-                totalAllocatedMips,
-                totalRequestedMips,
-                vm.isInMigration() && !getVmsMigratingIn().contains(vm));
+                                                currentTime, totalAllocatedMips, totalRequestedMips,
+                                                vm.isInMigration() && !getVmsMigratingIn().contains(vm));
         vm.addStateHistoryEntry(entry);
 
         if (vm.isInMigration()) {

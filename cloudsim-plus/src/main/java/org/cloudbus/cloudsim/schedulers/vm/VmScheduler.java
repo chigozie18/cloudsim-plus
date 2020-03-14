@@ -108,11 +108,10 @@ public interface VmScheduler {
      *
      * @return
      */
-    double getAvailableMips();
+    double getTotalAvailableMips();
 
     /**
-     * Gets a <b>copy</b> of the List of MIPS requested by a VM,
-     * avoiding the original list to be changed.
+     * Gets the List of MIPS requested by a VM.
      *
      * @param vm the VM to get the List of requested MIPS
      * @return
@@ -150,13 +149,6 @@ public interface VmScheduler {
      * @return true if the requested MIPS List is allowed to be allocated to the VM, false otherwise
      */
     boolean isSuitableForVm(final Vm vm, final List<Double> requestedMips);
-
-    /**
-     * Gets the maximum available MIPS among all the host's PEs.
-     *
-     * @return
-     */
-    double getMaxAvailableMips();
 
     /**
      * Gets the actual total allocated MIPS for a VM along all its allocated PEs.

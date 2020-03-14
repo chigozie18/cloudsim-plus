@@ -54,7 +54,6 @@ public class VmSchedulerSpaceShared extends VmSchedulerAbstract {
     protected boolean isSuitableForVmInternal(final Vm vm, final List<Double> requestedMips) {
         final List<Pe> selectedPes = getTotalCapacityToBeAllocatedToVm(requestedMips);
         return selectedPes.size() >= requestedMips.size();
-
     }
 
     /**
@@ -65,12 +64,17 @@ public class VmSchedulerSpaceShared extends VmSchedulerAbstract {
      *         with requested MIPS to be allocated to the VM
      */
     private List<Pe> getTotalCapacityToBeAllocatedToVm(final List<Double> requestedMips) {
-        if (getHost().getFreePeList().size() < requestedMips.size()) {
-            return getHost().getFreePeList();
+        if (getHost().getWorkingPesNumber() < requestedMips.size()) {
+            return getHost().getWorkingPeList();
         }
 
+        final List<Pe> freePeList = getHost().getFreePeList();
         final List<Pe> selectedPes = new ArrayList<>();
-        final Iterator<Pe> peIterator = getHost().getFreePeList().iterator();
+        if(freePeList.isEmpty()){
+            return selectedPes;
+        }
+
+        final Iterator<Pe> peIterator = freePeList.iterator();
         Pe pe = peIterator.next();
         for (final double mips : requestedMips) {
             if (mips <= pe.getCapacity()) {

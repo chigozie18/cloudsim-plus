@@ -8,7 +8,6 @@ package org.cloudbus.cloudsim.schedulers.vm;
 
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostSimple;
-import org.cloudbus.cloudsim.provisioners.PeProvisioner;
 import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.slf4j.Logger;
@@ -30,7 +29,6 @@ import static java.util.stream.Collectors.toList;
  * @since CloudSim Toolkit 1.0
  */
 public abstract class VmSchedulerAbstract implements VmScheduler {
-
     /**
      * The default percentage to define the CPU overhead of VM migration
      * if one is not explicitly set.
@@ -39,7 +37,7 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
     public static final double DEFAULT_VM_MIGRATION_CPU_OVERHEAD = 0.1;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VmSchedulerSpaceShared.class.getSimpleName());
-    
+
     /**
      * @see #getRequestedMipsMap()
      */
@@ -81,11 +79,16 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
     }
 
     @Override
-    public boolean isSuitableForVm(final Vm vm, final List<Double> requestedMips) {
+    public final boolean isSuitableForVm(final Vm vm, final List<Double> requestedMips) {
         if(requestedMips.isEmpty()){
             LOGGER.warn(
                 "{}: {}: It was requested an empty list of PEs for {} in {}",
                 getHost().getSimulation().clockStr(), getClass().getSimpleName(), vm, host);
+            return false;
+        }
+
+
+        if(getHost().isFailed()){
             return false;
         }
 
@@ -248,14 +251,6 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
         return getAllocatedMips(vm).stream().mapToDouble(v -> v).sum();
     }
 
-    @Override
-    public double getMaxAvailableMips() {
-        return getWorkingPeList().stream()
-                .map(Pe::getPeProvisioner)
-                .mapToDouble(PeProvisioner::getAvailableResource)
-                .max().orElse(0.0);
-    }
-
     /**
      * Gets PE capacity in MIPS.
      *
@@ -266,7 +261,7 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
      *       heterogeneous PEs.
      */
     public long getPeCapacity() {
-        return getWorkingPeList().stream().map(Pe::getCapacity).findFirst().orElse(0L);
+        return getWorkingPeList().isEmpty() ? 0 : getWorkingPeList().get(0).getCapacity();
     }
 
     /**
@@ -294,7 +289,7 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
 
     @Override
     public List<Double> getRequestedMips(final Vm vm) {
-        return new ArrayList<>(requestedMipsMap.getOrDefault(vm, Collections.emptyList()));
+        return requestedMipsMap.getOrDefault(vm, Collections.emptyList());
     }
 
     /**
@@ -316,7 +311,7 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
     }
 
     @Override
-    public double getAvailableMips() {
+    public double getTotalAvailableMips() {
         final double allocatedMips =
             allocatedMipsMap.entrySet()
                             .stream()
