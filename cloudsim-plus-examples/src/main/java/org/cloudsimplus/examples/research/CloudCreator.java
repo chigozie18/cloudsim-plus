@@ -53,13 +53,96 @@ public class CloudCreator {
 		//Uses a VmAllocationPolicySimple by default to allocate VMs
 		return new DatacenterSimple(simulation, hostList);  // the simulation paramter represents the instance of the simulation the datacenter (entity) is related to
 	}
+
+	/**
+	 * Creates a datacenter. This method also defines datacenter characteristics relating to cost. 
+	 * 
+	 * <p>For example, adding a costperSecond of .5 means it cost 50 cents per second to use the CPU in a datacenter. 
+	 * 
+	 * @param simulation the simulation entity that the datacenter is associated with 
+	 * @param hostList the list of hosts to be created in the datacenter
+	 * @param costPerSecond the monetary cost (in $) per second of CPU use in the datacenter
+	 * @param costPerMem the monetary cost (in $) to use each megabyte of RAM in the datacenter
+	 * @param costPerStorage the monetary cost (in $) to use each megabyte of storage in the datacenter
+	 * @param costPerBw the monetary cost (in $) to use each megabit of bandwidth in the datacenter
+	 * 
+	 * @return a datacenter 
+	 */
+	public static Datacenter createDatacenter(CloudSim simulation, List<Host> hostList, double costPerSecond, double costPerMem, 
+			double costPerStorage, double costPerBw) {  
+		//Uses a VmAllocationPolicySimple by default to allocate VMs
+		Datacenter datacenter = new DatacenterSimple(simulation, hostList);
+		datacenter.getCharacteristics()
+		.setCostPerSecond(costPerSecond)
+		.setCostPerMem(costPerMem)
+		.setCostPerStorage(costPerStorage)
+		.setCostPerBw(costPerBw);
+
+		return datacenter;  
+	}
+
 	
 	/**
-	 * Creates a list of hosts with the same attributes.
+	 * Creates a single host. All processor entities (PEs) of the host will have the same mips. 
+	 * 
+	 * @param pesNum the number of PEs to be created for the host
+	 * @param pesMips the mips of all PEs to be created for the host
+	 * @param ram the ram of the host (megabytes)
+	 * @param bw the bandwidth of the host (megabits/s)
+	 * @param storage the storage of the host (megabytes)
+	 * 
+	 * @return a host
+	 */
+	public static Host createHost(int pesNum, double pesMips, long ram, long bw, long storage) {
+		
+		final List<Pe> peList = new ArrayList<>(pesNum);  //List of Host's CPUs (Processing Elements, PEs)
+
+		for (int i = 0; i < pesNum; i++) {
+			//Uses a PeProvisionerSimple by default to provision PEs for VMs
+			peList.add(new PeSimple(pesMips));
+		}
+
+		Host host = new HostSimple(ram, bw, storage, peList);
+		return host;
+	}
+	
+
+	/**
+	 * Creates a single host. All processor entities (PEs) of the host will have the same mips. 
+	 * 
+	 * @param pesNum the number of PEs to be created for the host
+	 * @param pesMips the mips of all PEs to be created for the host
+	 * @param ram the ram of the host (megabytes)
+	 * @param bw the bandwidth of the host (megabits/s)
+	 * @param storage the storage of the host (megabytes)
+	 * @param vmScheduler the vm scheduler for the host
+	 * 
+	 * @return a host
+	 */
+	public static Host createHost(int pesNum, double pesMips, long ram, long bw, long storage, String vmScheduler) {
+
+		final List<Pe> peList = new ArrayList<>(pesNum);  //List of Host's CPUs (Processing Elements, PEs)
+
+		for (int i = 0; i < pesNum; i++) {
+			//Uses a PeProvisionerSimple by default to provision PEs for VMs
+			peList.add(new PeSimple(pesMips));
+		}
+
+		VmScheduler scheduler = getVmScheduler(vmScheduler);
+
+		Host host = new HostSimple(ram, bw, storage, peList);
+		host.setVmScheduler(scheduler);
+
+		return host;
+	}
+
+
+	/**
+	 * Creates a list of hosts with the same attributes. All processor entities (PEs) of each host will have the same mips.
 	 * 
 	 * @param hostNum the number of hosts to be created in the datacenter
 	 * @param pesNum the number of PEs to be created for each host
-	 * @param pesMips the mips of the PE to be created for each host
+	 * @param pesMips the mips of all PEs to be created for each host
 	 * @param ram the ram of the each host (megabytes)
 	 * @param bw the bandwidth of each host (megabits/s)
 	 * @param storage the storage of each host (megabytes)
@@ -82,16 +165,17 @@ public class CloudCreator {
 			Host host = new HostSimple(ram, bw, storage, peList);
 			list.add(host);
 		}
-		
+
 		return list;
 	}
-	
+
+
 	/**
-	 * Creates a list of hosts with the same attributes.
+	 * Creates a list of hosts with the same attributes. All processor entities (PEs) of each host will have the same mips.
 	 * 
 	 * @param hostNum the number of hosts to be created in the datacenter
 	 * @param pesNum the number of PEs to be created for each host
-	 * @param pesMips the mips of the PE to be created for each host
+	 * @param pesMips the mips of all PEs to be created for each host
 	 * @param ram the ram of the each host (megabytes)
 	 * @param bw the bandwidth of each host (megabits/s)
 	 * @param storage the storage of each host (megabytes)
@@ -113,12 +197,12 @@ public class CloudCreator {
 			}
 
 			VmScheduler scheduler = getVmScheduler(vmScheduler);
-			
+
 			Host host = new HostSimple(ram, bw, storage, peList);
 			host.setVmScheduler(scheduler);
 			list.add(host);
 		}
-		
+
 		return list;
 	}
 
@@ -188,7 +272,7 @@ public class CloudCreator {
 
 		return hostList;
 	}
-	
+
 
 	/**
 	 * 
@@ -205,9 +289,9 @@ public class CloudCreator {
 	 *
 	 */
 	public static List<Vm> createVms(int vmNum, int pesNum, double mips, int ram, int bw, int storage) {
-		
+
 		final List<Vm> list = new ArrayList<>(vmNum);
-		
+
 		for (int i = 0; i < vmNum; i++) {
 			final Vm vm = new VmSimple(mips, pesNum);
 			vm.setRam(ram).setBw(bw).setSize(storage);  
@@ -216,7 +300,7 @@ public class CloudCreator {
 
 		return list;
 	}
-	
+
 	/**
 	 * 
 	 * Creates a list of vms with the same attributes.
@@ -233,11 +317,11 @@ public class CloudCreator {
 	 *
 	 */
 	public static List<Vm> createVms(int vmNum, int pesNum, double mips, int ram, int bw, int storage, String cloudletScheduler) {
-		
+
 		final List<Vm> list = new ArrayList<>(vmNum);
-		
+
 		CloudletScheduler scheduler = getCloudletScheduler(cloudletScheduler);
-		
+
 		for (int i = 0; i < vmNum; i++) {
 			final Vm vm = new VmSimple(mips, pesNum);
 			vm.setRam(ram).setBw(bw).setSize(storage).setCloudletScheduler(scheduler);  
@@ -247,7 +331,7 @@ public class CloudCreator {
 		return list;
 	}  
 
-	
+
 	/**
 	 * Creates a list of vms from a CSV file.
 	 * 
@@ -276,9 +360,9 @@ public class CloudCreator {
 					int bw = Integer.parseInt(stringTokenizer.nextElement().toString());
 					int storage = Integer.parseInt(stringTokenizer.nextElement().toString());
 					String cloudletScheduler = stringTokenizer.nextElement().toString();
-					
+
 					CloudletScheduler scheduler = getCloudletScheduler(cloudletScheduler);
-					
+
 					final Vm vm = new VmSimple(mips, pes);
 					vm.setRam(ram).setBw(bw).setSize(storage).setCloudletScheduler(scheduler); // Makes all VMs 
 					vmList.add(vm);	            
@@ -303,7 +387,7 @@ public class CloudCreator {
 
 		return vmList;
 	}
-	
+
 	/**
 	 * Creates a list of cloudlets with the same attributes.
 	 * 
@@ -325,7 +409,7 @@ public class CloudCreator {
 		return list;
 
 	}
-	
+
 	/**
 	 * Creates a list of cloudlets from a CSV file. 
 	 * 
@@ -401,8 +485,8 @@ public class CloudCreator {
 
 		return scheduler;
 	}
-	
-	
+
+
 	/**
 	 * Takes a vm scheduler type (either "time-shared" or "space-shared") as a string and returns the appropriate vm scheduler object.
 	 * 
@@ -422,8 +506,8 @@ public class CloudCreator {
 
 		return scheduler;
 	}
-	
-	
+
+
 	/**
 	 * Takes a utilization model type (either "dynamic" or "full") as a string and returns the appropriate utilization model object.
 	 * 

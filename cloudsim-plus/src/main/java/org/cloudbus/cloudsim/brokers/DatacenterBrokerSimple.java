@@ -88,7 +88,7 @@ public class DatacenterBrokerSimple extends DatacenterBrokerAbstract {
      */
     @Override
     protected Datacenter defaultDatacenterMapper(final Datacenter lastDatacenter, final Vm vm) {
-        if(getDatacenterList().isEmpty()) {
+        if (getDatacenterList().isEmpty()) {
             throw new IllegalStateException("You don't have any Datacenter created.");
         }
 
@@ -104,7 +104,7 @@ public class DatacenterBrokerSimple extends DatacenterBrokerAbstract {
 
         return getDatacenterList().get(++lastSelectedDcIndex);
     }
-
+    
     /**
      * {@inheritDoc}
      *

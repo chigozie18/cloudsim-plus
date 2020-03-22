@@ -39,7 +39,7 @@ import java.util.List;
  * topology, running 1 cloudlet on it.
  * There is just one VM with a single PE of 250 MIPS.
  * The Cloudlet requires 1 PE and has a length of 40000 MI.
- * This way, the Cloudlet will take 160 seconds to finish (40000/250).
+ * This way, the Cloudlet will take 160 seconds to finish (40000/250). 
  *
  * <p>The Cloudlet is not requiring any files from a {@link SanStorage},
  * but since a network topology is defined from the file topology.brite,

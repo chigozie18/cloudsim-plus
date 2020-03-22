@@ -14,7 +14,7 @@ import org.cloudbus.cloudsim.datacenters.Datacenter;
  * @author chigozieasikaburu
  *
  */
-public class TimeCalculator {
+public class CloudletTimeCalculator {
 
 	
 	/**
@@ -72,14 +72,14 @@ public class TimeCalculator {
      * @param finishedCloudlets the list of cloudlets who have finished execution
      * @return the average arrival time of the given cloudlets
      */
-    public static double getAverageArrivalTime (List<Cloudlet> finishedCloudlets, Datacenter datacenter) {
+    public static double getAverageArrivalTime (List<Cloudlet> finishedCloudlets) {
     	double averageArrivalTime = 0;
     	
     	int finishedCloudletLength = finishedCloudlets.size();
     	
     	for (int i = 0; i < finishedCloudletLength; i++) {
     		// gets the sum of all cloudlet arrival times
-    		averageArrivalTime = averageArrivalTime + finishedCloudlets.get(i).getArrivalTime(datacenter);
+    		averageArrivalTime = averageArrivalTime + finishedCloudlets.get(i).getLastDatacenterArrivalTime();
     	}
     	
     	averageArrivalTime = averageArrivalTime/finishedCloudletLength;  // gets the average by dividing by number of finshed cloudlets in the list

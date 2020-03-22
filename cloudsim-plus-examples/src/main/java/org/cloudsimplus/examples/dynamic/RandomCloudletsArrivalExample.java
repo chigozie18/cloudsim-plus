@@ -139,7 +139,6 @@ public class RandomCloudletsArrivalExample {
         vmList = createVms();
         cloudletList = createCloudlets(INITIAL_CLOUDLETS_NUMBER);
         broker0.submitVmList(vmList);
-        broker0.submitCloudletList(cloudletList);
 
         simulation.addOnClockTickListener(this::createRandomCloudlets);
 

@@ -69,7 +69,7 @@ import java.util.stream.Stream;
  * @author chigozieasikaburu
  *
  */
-public class CloudSimCloudletScenario {
+public class SecondMoreComplexScenario {
     
     private final CloudSim simulation;
     private DatacenterBroker broker0;
@@ -79,10 +79,10 @@ public class CloudSimCloudletScenario {
     private Datacenter datacenter0, datacenter1;
 
     public static void main(String[] args) {
-        new CloudSimCloudletScenario();
+        new SecondMoreComplexScenario();
     }
 
-    private CloudSimCloudletScenario() {
+    private SecondMoreComplexScenario() {
         /*Enables just some level of log messages.
           Make sure to import org.cloudsimplus.util.Log;*/
         //Log.setLevel(ch.qos.logback.classic.Level.WARN);
