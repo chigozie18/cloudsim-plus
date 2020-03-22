@@ -1,0 +1,2 @@
+This file contains a statement used in the main method of the CloudletParameterGenerator Class to generate random cloudlet parameter files as shown in this folder. 
+

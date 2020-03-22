@@ -54,7 +54,7 @@ import java.util.List;
  *
  * @author chigozieasikaburu
  */
-public class FirstAndBasicScenario {
+public class FirstBasicScenario {
 	
 	private static final int HOSTS = 1;  // number of hosts for each datacenter 
 	
@@ -80,10 +80,10 @@ public class FirstAndBasicScenario {
     private Datacenter datacenter0, datacenter1;
 
     public static void main(String[] args) {
-        new FirstAndBasicScenario();
+        new FirstBasicScenario();
     }
 
-    private FirstAndBasicScenario() {
+    private FirstBasicScenario() {
         /*Enables just some level of log messages.
           Make sure to import org.cloudsimplus.util.Log;*/
         //Log.setLevel(ch.qos.logback.classic.Level.WARN);
