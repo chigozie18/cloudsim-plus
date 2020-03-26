@@ -33,9 +33,9 @@ import org.cloudbus.cloudsim.vms.VmSimple;
 
 /**
  * 
- * A class containing methods for creating datacenters, hosts, vms and cloudlets from user-defined parameters or from a CSV file
+ * A class containing methods for creating datacenters, hosts, vms and cloudlets from user-defined parameters or from a CSV file.
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class CloudCreator {
@@ -81,7 +81,7 @@ public class CloudCreator {
 		return datacenter;  
 	}
 
-	
+
 	/**
 	 * Creates a single host. All processor entities (PEs) of the host will have the same mips. 
 	 * 
@@ -94,7 +94,7 @@ public class CloudCreator {
 	 * @return a host
 	 */
 	public static Host createHost(int pesNum, double pesMips, long ram, long bw, long storage) {
-		
+
 		final List<Pe> peList = new ArrayList<>(pesNum);  //List of Host's CPUs (Processing Elements, PEs)
 
 		for (int i = 0; i < pesNum; i++) {
@@ -105,7 +105,7 @@ public class CloudCreator {
 		Host host = new HostSimple(ram, bw, storage, peList);
 		return host;
 	}
-	
+
 
 	/**
 	 * Creates a single host. All processor entities (PEs) of the host will have the same mips. 
@@ -524,8 +524,25 @@ public class CloudCreator {
 		if (utilizationModel.equals("full")) {
 			model = new UtilizationModelFull();  // utilization percentage not needed here (always at 100% utilization)    
 		}
-
 		return model;
+	}
+	
+	/**
+	 * Takes a list of vms and a list of hosts and maps each vm in the vm list to the corresponding host in the host list. 
+	 * The two lists must be equivalent in length as this method does a one-to-one mapping of vms to hosts. 
+	 * @param hostList 
+	 * @param vmList
+	 */
+	public List<Vm> setVmsInHosts(List<Host> hostList, List<Vm> vmList) {
+		
+		List<Vm> newVmList = new ArrayList<>();
+		for (int i = 0; i < vmList.size(); i++) {
+			Host host = hostList.get(i);
+			Vm vm = vmList.get(i);
+			vm.setHost(host);
+			newVmList.add(vm);
+		}
+		return newVmList;	
 	}
 
 }

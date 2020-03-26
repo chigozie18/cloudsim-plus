@@ -52,7 +52,7 @@ import java.util.List;
  * to change the number of Hosts, VMs and Cloudlets to create
  * and the number of {@link Pe}s for Hosts, VMs and Cloudlets.</p>
  *
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  */
 public class FirstBasicScenario {
 	

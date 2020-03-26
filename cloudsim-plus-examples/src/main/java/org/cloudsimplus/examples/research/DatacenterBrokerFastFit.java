@@ -11,19 +11,15 @@ import org.cloudbus.cloudsim.vms.Vm;
 
 /**
  * A implementation of {@link DatacenterBroker} that uses a Fast Fit
- * mapping between submitted Cloudlets and Vm's, trying to place a Cloudlet
- * at the Vm which can execute the Cloudlet the fastest. 
- * The Broker then places the submitted Vm's at the first Datacenter found.
+ * mapping between submitted cloudlets and vms, trying to place a cloudlet
+ * at the vm which can execute the cloudlet the fastest. 
+ * The Broker then places the submitted vms at the first datacenter found.
  * If there isn't capacity in that one, it will try the other ones.
  *
- * @author Manoel Campos da Silva Filho
+ * @author Chigozie Asikaburu
  * @since CloudSim Plus 4.6.0
  */
 public class DatacenterBrokerFastFit extends DatacenterBrokerSimple {
-    /**
-     * The index of the last Vm used to place a Cloudlet.
-     */
-    private int lastVmIndex;
 
     /**
      * Creates a DatacenterBroker object.

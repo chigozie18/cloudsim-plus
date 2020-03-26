@@ -12,28 +12,27 @@ import java.util.Random;
  * A class containing methods for generating parameters for datacenters, hosts, vms and cloudlets. The generated parameters are stored 
  * in a CSV file with a vertical bar (|) to denote delimiters.
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class CloudParameterGenerator {
 
-	
 	public static void main(String[] args) {
-		String[] utilizationModels = {"full"};  // the set of utilization models a cloudlet is allowed to have
 
-		// The maximum amount of delay a cloudlet can have is 10 seconds
-		CloudParameterGenerator.generateRandomCloudletParameters(10, 2, 500, 10000, 0, 10, utilizationModels, 0, 0);  
+		String filePath = "Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv";
+		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1, 0, 600);
 		// For full utilization model cloudlets the last two parameters can ignored and can be any value hence the two zeros	
-	
 	}
 
 	/**
-	 * Generates random cloudlet parameters within a user-defined range in a CSV file. The minimum cloudlet processor entities (pes), lengths, and sizes are at least 1.
-	 * Utilization percentage parameters for this method and cloudlets take a double value ranging from 0 (0%) to 1 (100%). 
+	 * Generates random cloudlet parameters within a user-defined range in a CSV file. The minimum cloudlet processor entities (pes), lengths and sizes generated will be 
+	 * at least 1. Utilization percentage parameters for this method take a double value ranging from 0 (0%) to 1 (100%). The utilization percentage parameters 
+	 * are ignored when a cloudlet's model is set to full as it's always 1 (100%). Therefore, the parameter is only used when cloudlets with a dynamic utilization model are generated. 
 	 * 
+	 * @param filePath the file path containing the CSV file to write data to 
 	 * @param cloudletNum the number of random cloudlet parameters to be generated  
 	 * @param pes the maximum number of pes a cloudlet can have
-	 * @param length the maximum length (in mips) of a cloudlet can have 
+	 * @param length the maximum length (in mips) a cloudlet can have 
 	 * @param size the maximum size (in bytes) a cloudlet can be 
 	 * @param submissionDelayMin the minimum submission delay (in seconds) a cloudlet can have 
 	 * @param submissionDelayMax the maximum submission delay (in seconds)a cloudlet can have 
@@ -41,7 +40,7 @@ public class CloudParameterGenerator {
 	 * @param utilizationPercentageMin the minimum utilization a cloudlet with a dynamic utilization model can have (this parameter is ignored for cloudlet with a full utilization model) 
 	 * @param utilizationPercentageMax the maximum utilization a cloudlet with a dynamic utilization model can have (this parameter is ignored for cloudlet with a full utilization model) 
 	 */
-	public static void generateRandomCloudletParameters(int cloudletNum, int pes, int length, int size, double submissionDelayMin, 
+	public static void generateRandomCloudletParameters(String filePath, int cloudletNum, int pes, int length, int size, double submissionDelayMin, 
 			double submissionDelayMax, String[] utilizationModels, double utilizationPercentageMin, double utilizationPercentageMax) {
 
 		Random rand = new Random();
@@ -49,7 +48,7 @@ public class CloudParameterGenerator {
 		DecimalFormat df = new DecimalFormat("0.00");	
 
 		try {
-			File file = new File("Test_Data/Demos 3:20/DatacenterCloudlets(3:20_Demo).csv");
+			File file = new File(filePath);
 			FileWriter fileReader = new FileWriter(file); // A stream that connects to the text file
 			BufferedWriter bufferedWriter = new BufferedWriter(fileReader); // Connect the FileWriter to the BufferedWriter
 
@@ -77,27 +76,95 @@ public class CloudParameterGenerator {
 				bufferedWriter.write(sb + "\n");		
 			}
 
-			bufferedWriter.close(); // Close the stream
+			bufferedWriter.close(); // Close the stream	
+			System.out.println("Successfully wrote to a file!");
 		} 
 
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 	}
 	
+	/**
+	 * Generates random cloudlet parameters within a user-defined range in a CSV file. This method always generates cloudlets with a utilization model of full. 
+	 * The PEs and the size of the cloudlets are always fixed (defined by the parameters) and will not be randomized. This method only takes an integer for 
+	 * a submission delay range and generates cloudlet submission delays containing decimal integers (ex. 1.0, 3.0, 7.0).
+	 * 
+	 * @param filePath the file path containing the CSV file to write data to 
+	 * @param cloudletNum the number of random cloudlet parameters to be generated  
+	 * @param pes the number of pes all cloudlets 
+	 * @param lengthMin the minimum length (in mips) a cloudlet can have 
+	 * @param lengthMax the maximum length (in mips) a cloudlet can have 
+	 * @param size the size (in bytes) of all cloudlets
+	 * @param submissionDelayMin the minimum submission delay (in seconds) a cloudlet can have 
+	 * @param submissionDelayMax the maximum submission delay (in seconds)a cloudlet can have 
+	 */
+	public static void generateRandomCloudletParameters(String filePath, int cloudletNum, int pes, int lengthMin, int lengthMax, int size, int submissionDelayMin, 
+			int submissionDelayMax) {
+
+		DecimalFormat df = new DecimalFormat("0.00");	
+
+		try {
+			File file = new File(filePath);
+			FileWriter fileReader = new FileWriter(file); // A stream that connects to the text file
+			BufferedWriter bufferedWriter = new BufferedWriter(fileReader); // Connect the FileWriter to the BufferedWriter
+
+			for (int i = 0; i < cloudletNum; i++) {
+
+				int lengthRandom = randomIntegerRange(lengthMin, lengthMax);
+				double submissionDelayRandom = randomIntegerRange(submissionDelayMin, submissionDelayMax);  // The minimum submission delay is allowed to be zero hence no delay 
+
+				StringBuilder sb = new StringBuilder();
+				sb.append(pes + "|" + lengthRandom + "|" + size + "|" + df.format(submissionDelayRandom) + "|" + "full");
+
+					sb.append("|" + 1.0);   // will never be used but done to keep the CSV file format consistent with cloudlets using dynamic and full utilization models
+				
+				bufferedWriter.write(sb + "\n");		
+			}
+			
+			bufferedWriter.close(); // Close the stream
+			System.out.println("Successfully wrote to a file!");
+		} 
+
+		catch (Exception e) {
+			e.printStackTrace();
+		}		
+	}
 	
 	/**
-	 * Generates a random double value from a user-defined range.
+	 * Generates a random integer between a min (inclusive) and max (inclusive). 
 	 * 
-	 * @param start the minimum double value in the range
-	 * @param end the maximum double value in the range 
+	 * @param min the minimum integer (inclusive) to be generated
+	 * @param max the maximum integer (exclusive) to be generated 
+	 * @return
+	 */
+	private static int randomIntegerRange(int min, int max) {
+
+		if (min >= max) {
+			throw new IllegalArgumentException("max must be greater than min");
+		}
+
+		Random r = new Random();
+		return r.nextInt((max - min) + 1) + min;
+	}
+	
+	/**
+	 * Generates a random double between a min (inclusive) and max (inclusive). 
+	 * 
+	 * @param min the minimum double value in the range
+	 * @param max the maximum double value in the range 
 	 * 
 	 * @return a random double value 
 	 */
-	public static double randomDoubleRange(double start, double end) {
+	private static double randomDoubleRange(double min, double max) {
+		
+		if (min >= max) {
+			throw new IllegalArgumentException("max must be greater than min");
+		}
 		
 		double random = new Random().nextDouble();
-		double randomdouble = start + (random * (end - start));  // creates a range of random doubles from 0.05 to 1.0		            	            		
+		double randomdouble = min + (random * (max - min));  // creates a range of random doubles from 0.05 to 1.0		            	            		
 		
 		return randomdouble;
 	}

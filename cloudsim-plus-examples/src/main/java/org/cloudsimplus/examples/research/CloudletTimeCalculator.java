@@ -8,10 +8,10 @@ import org.cloudbus.cloudsim.datacenters.Datacenter;
 
 
 /**
- * A class for calculating time relating to Cloudlets. 
+ * A class for calculating time relating to cloudlets. 
  * 
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class CloudletTimeCalculator {

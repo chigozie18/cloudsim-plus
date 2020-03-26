@@ -38,8 +38,10 @@ import org.cloudbus.cloudsim.provisioners.ResourceProvisioner;
 import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
 import org.cloudbus.cloudsim.resources.Pe;
 import org.cloudbus.cloudsim.resources.PeSimple;
+import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmScheduler;
+import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerSpaceShared;
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelFull;
@@ -69,7 +71,7 @@ import java.util.List;
  */
 public class CloudletToVmMappingBestFit {
     private static final int HOSTS = 2;
-    private static final int HOST_PES = 8;
+    private static final int HOST_PES = 4;
 
     private static final int VMS = 4;
 
@@ -135,7 +137,7 @@ public class CloudletToVmMappingBestFit {
         final long storage = 1000000; //in Megabytes
         ResourceProvisioner ramProvisioner = new ResourceProvisionerSimple();
         ResourceProvisioner bwProvisioner = new ResourceProvisionerSimple();
-        VmScheduler vmScheduler = new VmSchedulerTimeShared();
+        VmScheduler vmScheduler = new VmSchedulerSpaceShared();
         Host host = new HostSimple(ram, bw, storage, peList);
         host
             .setRamProvisioner(ramProvisioner)
@@ -155,7 +157,7 @@ public class CloudletToVmMappingBestFit {
             Vm vm =
                 new VmSimple(1000, i+1)
                     .setRam(512).setBw(1000).setSize(10000)
-                    .setCloudletScheduler(new CloudletSchedulerTimeShared());
+                    .setCloudletScheduler(new CloudletSchedulerSpaceShared());
 
             list.add(vm);
         }

@@ -27,6 +27,7 @@ import java.util.List;
  */
 
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
+import org.cloudbus.cloudsim.brokers.DatacenterBrokerBestFit;
 import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -41,7 +42,7 @@ import org.cloudsimplus.listeners.EventInfo;
  * Creates a simple scenario showing one host running on one datacenter executing cloudlets that arrive at a random time. The cloudlet's arrival is controlled by 
  * delaying the submission of the cloudlets.
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class CloudletSubmissionDelayScenario {
@@ -61,8 +62,6 @@ public class CloudletSubmissionDelayScenario {
     private CloudletSubmissionDelayScenario() {
     
         simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
-        simulation.terminateAt(30);
-
         
         // Creates a list of hosts 
         hostList = CloudCreator.createHosts(1, 6, 2000, 2048, 1000, 25000, "space-shared");
@@ -73,14 +72,15 @@ public class CloudletSubmissionDelayScenario {
         broker0 = new DatacenterBrokerSimple(simulation); 
         
         vmList = CloudCreator.createVms(1, 4, 1400, 1024, 500, 5000, "time-shared");		      
-        						
-        
+        	
+
+        cloudletList = CloudCreator.createCloudletsFromFile("Test_Data/Demos (3:6)/DatacenterCloudlets(3:6_Demo).csv");   
+
+        broker0.submitCloudletList(cloudletList);
         broker0.submitVmList(vmList);      
         
         Vm vm = vmList.get(vmList.size() -1);  // gets the last VM to track to listen when it's been notified
 		
-        simulation.addOnClockTickListener(this::clockTickListener);        
-
         simulation.start();        
         
         finishedCloudlets = broker0.getCloudletFinishedList();

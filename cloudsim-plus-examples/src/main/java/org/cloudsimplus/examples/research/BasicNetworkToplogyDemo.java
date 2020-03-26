@@ -41,7 +41,7 @@ import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 /**
  * Creates a simple network topology demo where monetary costs are added to links between nodes which represent Sim Entities.
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class BasicNetworkToplogyDemo {

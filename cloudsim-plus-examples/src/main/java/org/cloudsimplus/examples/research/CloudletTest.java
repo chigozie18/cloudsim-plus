@@ -4,7 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
-
+/**
+ * A class for testing if parsing cloudlet parameters from a CSV file works correctly. 
+ * 
+ * @author Chigozie Asikaburu
+ *
+ */
 public class CloudletTest {
 
 	public static void main(String[] args) {

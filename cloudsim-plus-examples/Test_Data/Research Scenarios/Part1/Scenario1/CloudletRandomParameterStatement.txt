@@ -1,0 +1,5 @@
+This file contains a statement used in the main method of the CloudletParameterGenerator Class to generate random cloudlet parameter files as shown in this folder. 
+
+String filePath = "Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv";
+CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 500, 0, 600);
+

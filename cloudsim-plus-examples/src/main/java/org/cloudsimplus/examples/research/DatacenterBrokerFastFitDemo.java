@@ -48,7 +48,7 @@ import java.util.List;
  * Creates a simple scenario showing one host running on one datacenter executing cloudlets that arrive at a random time. The cloudlet's arrival is controlled by 
  * delaying the submission of the cloudlets.
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class DatacenterBrokerFastFitDemo {

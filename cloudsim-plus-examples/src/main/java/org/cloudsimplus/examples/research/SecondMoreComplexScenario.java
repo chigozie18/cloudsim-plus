@@ -23,50 +23,27 @@ package org.cloudsimplus.examples.research;
  *     along with CloudSim Plus. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.cloudbus.cloudsim.brokers.DatacenterBroker;
-import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
-import org.cloudbus.cloudsim.core.CloudSim;
-import org.cloudbus.cloudsim.datacenters.Datacenter;
-import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
-import org.cloudbus.cloudsim.hosts.Host;
-import org.cloudbus.cloudsim.hosts.HostSimple;
-import org.cloudbus.cloudsim.provisioners.PeProvisionerSimple;
-import org.cloudbus.cloudsim.provisioners.ResourceProvisioner;
-import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
-import org.cloudbus.cloudsim.resources.Pe;
-import org.cloudbus.cloudsim.resources.PeSimple;
-import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared;
-import org.cloudbus.cloudsim.schedulers.vm.VmScheduler;
-import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared;
-import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
-import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic;
-import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelFull;
-import org.cloudbus.cloudsim.vms.Vm;
-import org.cloudbus.cloudsim.vms.VmSimple;
-import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
-
+import org.cloudbus.cloudsim.brokers.DatacenterBroker;
+import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.core.CloudSim;
+import org.cloudbus.cloudsim.datacenters.Datacenter;
+import org.cloudbus.cloudsim.hosts.Host;
+import org.cloudbus.cloudsim.vms.Vm;
+import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 
 /**
  * 
  * Shows a CloudSim Scenario with 2 datacenter that have 4 hosts each. Each host has a different set of specifications but all hosts PEs have the same specs. 
  * There are 8 VMs in each datacenter which are allocated using time-shared (so they aren't fixed to any specific datacenter on any machine. Cloudlets are 
  * created according to a random set of parameters defined in CloudGenerator and 200 were created (for each cloudlet list and were assigned to one of the two lists of VMs (each list contains 8 VMs). All 
- *  parameter needed are gotten from parsing a CSV file using utility methods in CloudUtility.
+ *  parameter needed are gotten from parsing a CSV file using methods in {@link CloudCreator}.
  * 
- * @author chigozieasikaburu
+ * @author Chigozie Asikaburu
  *
  */
 public class SecondMoreComplexScenario {
