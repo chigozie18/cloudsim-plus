@@ -310,6 +310,11 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
         return allocatedMipsMap;
     }
 
+    /** @see #getAllocatedMips(Vm) */
+    protected final void putAllocatedMipsMap(final Vm vm, final List<Double> requestedMips) {
+        allocatedMipsMap.put(vm, requestedMips);
+    }
+
     @Override
     public double getTotalAvailableMips() {
         final double allocatedMips =
@@ -429,6 +434,10 @@ public abstract class VmSchedulerAbstract implements VmScheduler {
      * @return
      */
     private boolean isOtherHostAssigned(final Host host) {
-        return this.host != null && this.host != Host.NULL && !host.equals(this.host);
+        /*It'se used != instead of !equals() because when a VmScheduler is set to a Host,
+        * the Host may not have an ID yet.
+        * That may happen when the Host is created without an id,
+        * which is set only when the Host list is assigned to a Datacenter. */
+        return this.host != null && this.host != Host.NULL && host != this.host;
     }
 }
