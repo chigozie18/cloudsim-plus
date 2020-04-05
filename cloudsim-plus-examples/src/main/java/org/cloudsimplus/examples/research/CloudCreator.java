@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.core.CloudSim;
@@ -52,6 +53,24 @@ public class CloudCreator {
 	public static Datacenter createDatacenter(CloudSim simulation, List<Host> hostList) {  
 		//Uses a VmAllocationPolicySimple by default to allocate VMs
 		return new DatacenterSimple(simulation, hostList);  // the simulation paramter represents the instance of the simulation the datacenter (entity) is related to
+	}
+
+	/**
+	 * Creates a datacenter. This method takes an additional parameter for the scheduling interval of a datacenter. 
+	 * 
+	 * 
+	 * @param simulation the simulation entity that the datacenter is associated with 
+	 * @param hostList the list of hosts to be created in the datacenter
+	 * @param schedulingInterval the scheduling interval (in seconds) of the datacenter
+	 * 
+	 * @return a datacenter 
+	 */
+	public static Datacenter createDatacenter(CloudSim simulation, List<Host> hostList, double schedulingInterval) {  
+
+		Datacenter datacenter = new DatacenterSimple(simulation, hostList);
+		datacenter.setSchedulingInterval(schedulingInterval);
+		//Uses a VmAllocationPolicySimple by default to allocate VMs
+		return datacenter;  // the simulation paramter represents the instance of the simulation the datacenter (entity) is related to
 	}
 
 	/**
@@ -333,9 +352,9 @@ public class CloudCreator {
 
 
 	/**
-	 * Creates a list of vms from a CSV file.
+	 * Creates a list of vms from a CSV file. The format of the CSV file is: (pes|pesMips|ram|bw|storage|cloudletScheduler).
 	 * 
-	 * @param filePath the path that contains the list of vms in a CSV file format (pes|pesMips|ram|bw|storage|cloudletScheduler)
+	 * @param filePath the path that contains the list of vms in a CSV file format 
 	 * 
 	 * @return a list of hosts
 	 */
@@ -411,10 +430,10 @@ public class CloudCreator {
 	}
 
 	/**
-	 * Creates a list of cloudlets from a CSV file. 
+	 * Creates a list of cloudlets from a CSV file. The format of the CSV file is: (pes|length|size|submissionDelay|utilizationModel|utilizationPercentage).
 	 * 
 	 * @param filePath the file path to be read
-	 * @return
+	 * @return a list of created cloudlets 
 	 */
 	public static List<Cloudlet> createCloudletsFromFile(String filePath) {
 
@@ -443,6 +462,67 @@ public class CloudCreator {
 					Cloudlet cloudlet = new CloudletSimple(length, pes, model);
 					cloudlet.setSizes(size);
 					cloudlet.setSubmissionDelay(submissionDelay);
+					cloudletList.add(cloudlet);				
+				}  
+			}
+		} 
+
+		catch (IOException e) {
+			e.printStackTrace();
+		} 
+
+		finally {
+
+			try {
+				if (br != null)
+					br.close();
+			} 
+			catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		return cloudletList;
+	}
+
+
+	/**
+	 * Creates a list of cloudlets from a CSV file. This takes a new CSV file format that defines an additional paramater, a cloudlet's job id. 
+	 * A cloudlet's job id can be used to categorize tasks. The format of the CSV file is: (pes|length|size|submissionDelay|utilizationModel|utilizationPercentage|jobID).
+	 *  
+	 * @see CloudletSimple #getJobId()
+	 * @param filePath the file path to be read
+	 * @return a list of created cloudlets 
+	 */
+	public static List<Cloudlet> createCloudletsFromFile2(String filePath) {
+
+		BufferedReader br = null;
+		final List<Cloudlet> cloudletList = new ArrayList<>();
+
+		try {
+			String line;
+			br = new BufferedReader(new FileReader(filePath));
+
+			while ((line = br.readLine()) != null) {
+
+				StringTokenizer stringTokenizer = new StringTokenizer(line, "|");
+
+				while (stringTokenizer.hasMoreElements()) {
+
+					int pes = Integer.parseInt(stringTokenizer.nextElement().toString());
+					int length = Integer.parseInt(stringTokenizer.nextElement().toString());
+					int size = Integer.parseInt(stringTokenizer.nextElement().toString());
+					double submissionDelay = Double.parseDouble(stringTokenizer.nextElement().toString());
+					String utilizationModel = stringTokenizer.nextElement().toString();
+					double utilizationPercentage = Double.parseDouble(stringTokenizer.nextElement().toString());
+					int jobId = Integer.parseInt(stringTokenizer.nextElement().toString());
+
+					UtilizationModel model = getUtilizationModel(utilizationModel, utilizationPercentage);
+
+					Cloudlet cloudlet = new CloudletSimple(length, pes, model);
+					cloudlet.setSizes(size);
+					cloudlet.setSubmissionDelay(submissionDelay);
+					cloudlet.setJobId(jobId);
 					cloudletList.add(cloudlet);				
 				}  
 			}
@@ -526,23 +606,4 @@ public class CloudCreator {
 		}
 		return model;
 	}
-	
-	/**
-	 * Takes a list of vms and a list of hosts and maps each vm in the vm list to the corresponding host in the host list. 
-	 * The two lists must be equivalent in length as this method does a one-to-one mapping of vms to hosts. 
-	 * @param hostList 
-	 * @param vmList
-	 */
-	public List<Vm> setVmsInHosts(List<Host> hostList, List<Vm> vmList) {
-		
-		List<Vm> newVmList = new ArrayList<>();
-		for (int i = 0; i < vmList.size(); i++) {
-			Host host = hostList.get(i);
-			Vm vm = vmList.get(i);
-			vm.setHost(host);
-			newVmList.add(vm);
-		}
-		return newVmList;	
-	}
-
 }

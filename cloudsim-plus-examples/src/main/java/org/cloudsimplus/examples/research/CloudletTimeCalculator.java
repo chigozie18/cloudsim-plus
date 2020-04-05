@@ -18,10 +18,10 @@ public class CloudletTimeCalculator {
 
 	
 	/**
-     * Gets the average finish times of cloudlets.
+     * Gets the average finish time of cloudlets.
      * 
      * 
-     * @param finishedCloudlets the list of cloudlets who have finished execution
+     * @param finishedCloudlets the list of cloudlets that finished execution
      * @return the average finish time of the given cloudlets
      */
     public static double getAverageFinishTime (List<Cloudlet> finishedCloudlets) {
@@ -41,11 +41,11 @@ public class CloudletTimeCalculator {
     }
     
     /**
-     * Gets the average execution (CPU) times of cloudlets. The execution time represents the time a cloudlet spent running 
+     * Gets the average execution (CPU) time of cloudlets. The execution time represents the time a cloudlet spent running 
      * or {@link #NOT_ASSIGNED} if it hasn't finished yet.
      * 
      * 
-     * @param finishedCloudlets the list of cloudlets who have finished execution
+     * @param finishedCloudlets the list of cloudlets that finished execution
      * @return the average execution time of the given cloudlets
      */
     public static double getAverageExecutionTime (List<Cloudlet> finishedCloudlets) {
@@ -66,10 +66,10 @@ public class CloudletTimeCalculator {
     
     
     /**
-     * Gets the average arrival times of cloudlets.
+     * Gets the average arrival time of cloudlets.
      * 
      * 
-     * @param finishedCloudlets the list of cloudlets who have finished execution
+     * @param finishedCloudlets the list of cloudlets that finished execution
      * @return the average arrival time of the given cloudlets
      */
     public static double getAverageArrivalTime (List<Cloudlet> finishedCloudlets) {
@@ -85,6 +85,28 @@ public class CloudletTimeCalculator {
     	averageArrivalTime = averageArrivalTime/finishedCloudletLength;  // gets the average by dividing by number of finshed cloudlets in the list
 
     	return averageArrivalTime;
+
+    }
+    
+	/**
+     * Gets the average turnaround time of cloudlets.
+     * 
+     * @param finishedCloudlets the list of cloudlets that finished execution
+     * @return the average turnaround time of the given cloudlets
+     */
+    public static double getAverageTurnaroundTime (List<Cloudlet> finishedCloudlets) {
+		double averageTurnaroundTime = 0;
+    	
+    	int finishedCloudletLength = finishedCloudlets.size();
+    	
+    	for (int i = 0; i < finishedCloudletLength; i++) {
+    		Datacenter cloudletDatacenter = finishedCloudlets.get(i).getVm().getHost().getDatacenter();
+    		averageTurnaroundTime =  averageTurnaroundTime + finishedCloudlets.get(i).getFinishTime() - finishedCloudlets.get(i).getArrivalTime(cloudletDatacenter);
+    	}
+    	
+    	averageTurnaroundTime = averageTurnaroundTime/finishedCloudletLength;  // gets the average by dividing by number of finshed cloudlets in the list
+
+    	return averageTurnaroundTime;
 
     }
 	

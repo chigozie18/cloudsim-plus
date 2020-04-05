@@ -20,7 +20,7 @@ public class CloudParameterGenerator {
 	public static void main(String[] args) {
 
 		String filePath = "Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv";
-		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1, 0, 600);
+		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1, 0, 600, 2);
 		// For full utilization model cloudlets the last two parameters can ignored and can be any value hence the two zeros	
 	}
 
@@ -99,9 +99,10 @@ public class CloudParameterGenerator {
 	 * @param size the size (in bytes) of all cloudlets
 	 * @param submissionDelayMin the minimum submission delay (in seconds) a cloudlet can have 
 	 * @param submissionDelayMax the maximum submission delay (in seconds)a cloudlet can have 
+	 * @param jobId the type of job this cloudlet belongs to
 	 */
 	public static void generateRandomCloudletParameters(String filePath, int cloudletNum, int pes, int lengthMin, int lengthMax, int size, int submissionDelayMin, 
-			int submissionDelayMax) {
+			int submissionDelayMax, int jobId) {
 
 		DecimalFormat df = new DecimalFormat("0.00");	
 
@@ -118,7 +119,8 @@ public class CloudParameterGenerator {
 				StringBuilder sb = new StringBuilder();
 				sb.append(pes + "|" + lengthRandom + "|" + size + "|" + df.format(submissionDelayRandom) + "|" + "full");
 
-					sb.append("|" + 1.0);   // will never be used but done to keep the CSV file format consistent with cloudlets using dynamic and full utilization models
+				sb.append("|" + 1.0);     // will never be used but done to keep the CSV file format consistent with cloudlets using dynamic and full utilization models
+				sb.append("|" + jobId);
 				
 				bufferedWriter.write(sb + "\n");		
 			}

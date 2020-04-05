@@ -13,7 +13,8 @@ import org.cloudbus.cloudsim.vms.Vm;
 
 /**
  * A implementation of {@link DatacenterBroker} that uses a Custom Fit
- * mapping between submitted cloudlets and vms. 
+ * mapping between submitted cloudlets and vms where cloudlets are placed into vms using a Round-Robin policy.
+ * 
  *
  * @author Chigozie Asikaburu
  * @since CloudSim Plus 4.6.0

@@ -41,7 +41,7 @@ import java.util.List;
  * @since CloudSim Plus 1.0
  */
 public class CloudletsTableBuilder extends TableBuilderAbstract<Cloudlet> {
-    private static final String TIME_FORMAT = "%.2f";
+    private static final String TIME_FORMAT = "%.0f";
     private static final String SECONDS = "Seconds";
     private static final String CPU_CORES = "CPU cores";
 
@@ -55,7 +55,7 @@ public class CloudletsTableBuilder extends TableBuilderAbstract<Cloudlet> {
     public CloudletsTableBuilder(final List<? extends Cloudlet> list) {
         super(list);
     }
-    
+
     /**
      * Instantiates a builder to print the list of Cloudlets using the a
      * given {@link Table}.
@@ -84,13 +84,11 @@ public class CloudletsTableBuilder extends TableBuilderAbstract<Cloudlet> {
         addColumnDataFunction(col, Cloudlet::getExecStartTime);
 
         col = getTable().addColumn("FinishTime", SECONDS).setFormat(TIME_FORMAT);
-        addColumnDataFunction(col, cl -> cl.getFinishTime());
+        addColumnDataFunction(col, cl -> roundTime(cl, cl.getFinishTime()));
 
         col = getTable().addColumn("ExecTime", SECONDS).setFormat(TIME_FORMAT);
-        addColumnDataFunction(col, cl -> cl.getActualCpuTime());
+        addColumnDataFunction(col, cl -> roundTime(cl, cl.getActualCpuTime()));
     }
-    
-    
 
     /**
      * Rounds a given time so that decimal places are ignored.

@@ -69,10 +69,9 @@ public class CloudletSubmissionDelayScenario {
         datacenter0 = CloudCreator.createDatacenter(simulation, hostList);  // creates a datacenter and it's hosts. The number of hosts can be changed by modifying the fields       
         
         //Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-        broker0 = new DatacenterBrokerSimple(simulation); 
+        broker0 = new DatacenterBrokerFastFit(simulation); 
         
         vmList = CloudCreator.createVms(1, 4, 1400, 1024, 500, 5000, "time-shared");		      
-        	
 
         cloudletList = CloudCreator.createCloudletsFromFile("Test_Data/Demos (3:6)/DatacenterCloudlets(3:6_Demo).csv");   
 
@@ -106,7 +105,6 @@ public class CloudletSubmissionDelayScenario {
     		double currentDelay = cloudletList.get(i).getSubmissionDelay();  // represents the current simulation time
     		
     		cloudletList.get(i).setSubmissionDelay(currentDelay - currentSimulationTime); 
-        
     	}	
     }
     

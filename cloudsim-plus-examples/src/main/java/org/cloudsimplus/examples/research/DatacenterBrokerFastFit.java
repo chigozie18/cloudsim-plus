@@ -49,7 +49,6 @@ public class DatacenterBrokerFastFit extends DatacenterBrokerSimple {
 
         final Vm mappedVm = getVmCreatedList()
             .stream()
-            .filter(vm -> vm.getExpectedFreePesNumber() >= cloudlet.getNumberOfPes())  // checks if the Vm is suitable for the cloutlet
             .max(Comparator.comparingDouble(Vm::getMips))  // gets the Vm with the most mips
             .orElse(Vm.NULL);
 

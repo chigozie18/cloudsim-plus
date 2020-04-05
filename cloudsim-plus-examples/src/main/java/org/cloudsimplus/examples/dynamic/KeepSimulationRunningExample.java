@@ -138,7 +138,7 @@ public class KeepSimulationRunningExample {
         //Log.setLevel(ch.qos.logback.classic.Level.WARN);
 
         simulation = new CloudSim();
-        simulation.terminateAt(TIME_TO_TERMINATE_SIMULATION);
+        simulation.terminateAt(10);
         datacenter0 = createDatacenter();
 
         broker0 = new DatacenterBrokerSimple(simulation);

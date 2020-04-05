@@ -41,6 +41,8 @@ public class CloudResults {
 		printAverageFinishTime(finishedCloudlets);
 		printAverageExecutionTime(finishedCloudlets);
 		printAverageArrivalTime(finishedCloudlets);
+		printAverageTurnaroundTime(finishedCloudlets);
+
 	}
 	
 	/**
@@ -82,6 +84,20 @@ public class CloudResults {
 		System.out.println("\n");
 		System.out.println("************* Average Arrival Time *************");
 		System.out.println("\nThe average arrival time was: " + df.format(CloudletTimeCalculator.getAverageArrivalTime(finishedCloudlets)));
+		System.out.println("\n");
+	}
+	
+	/**
+	 * Prints out the average arrival time of all cloudlets that have finished executing.  
+	 * 
+	 * @param finishedCloudlets the list of all finished cloudlets
+	 */
+	public static void printAverageTurnaroundTime (List<Cloudlet> finishedCloudlets) { 
+		DecimalFormat df = new DecimalFormat("0.00");	
+
+		System.out.println("\n");
+		System.out.println("************* Average Turnaround Time *************");
+		System.out.println("\nThe average turnaround time was: " + df.format(CloudletTimeCalculator.getAverageTurnaroundTime(finishedCloudlets)));
 		System.out.println("\n");
 	}
 	
