@@ -12,8 +12,7 @@ import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicyAbstract;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.selectionpolicies.VmSelectionPolicy;
 import org.cloudbus.cloudsim.vms.Vm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.cloudbus.cloudsim.vms.VmSimple;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -52,7 +51,6 @@ import static java.util.stream.Collectors.toSet;
  */
 public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPolicyAbstract implements VmAllocationPolicyMigration {
     public static final double DEF_UNDER_UTILIZATION_THRESHOLD = 0.35;
-    private static final Logger LOGGER = LoggerFactory.getLogger(VmAllocationPolicyMigrationAbstract.class.getSimpleName());
 
     /** @see #getUnderUtilizationThreshold() */
     private double underUtilizationThreshold;
@@ -64,6 +62,12 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * A map between a VM and the host where it is placed.
      */
     private final Map<Vm, Host> savedAllocation;
+
+    /** @see #areHostsUnderloaded() */
+    private boolean hostsUnderloaded;
+
+    /** @see #areHostsOverloaded() */
+    private boolean hostsOverloaded;
 
     /**
      * Creates a VmAllocationPolicy.
@@ -99,11 +103,16 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
     public Map<Vm, Host> getOptimizedAllocationMap(final List<? extends Vm> vmList) {
         //@TODO See https://github.com/manoelcampos/cloudsim-plus/issues/94
         final Set<Host> overloadedHosts = getOverloadedHosts();
+        this.hostsOverloaded = !overloadedHosts.isEmpty();
         printOverUtilizedHosts(overloadedHosts);
         saveAllocation();
 
         final Map<Vm, Host> migrationMap = getMigrationMapFromOverloadedHosts(overloadedHosts);
         updateMigrationMapFromUnderloadedHosts(overloadedHosts, migrationMap);
+        if(migrationMap.isEmpty()){
+            return migrationMap;
+        }
+
         restoreAllocation();
         return migrationMap;
     }
@@ -124,11 +133,11 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         final Set<Host> ignoredSourceHosts = getIgnoredHosts(overloadedHosts, switchedOffHosts);
 
         /*
-        During the computation of the new placement for VMs
+        During the computation of the new placement for VMs,
         the current VM placement is changed temporarily, before the actual migration of VMs.
         If VMs are being migrated from overloaded Hosts, they in fact already were removed
         from such Hosts and moved to destination ones.
-        The target Host that maybe were shut down, might become underloaded too.
+        The target Host that maybe was shut down, might become underloaded too.
         This way, such Hosts are added to be ignored when
         looking for underloaded Hosts.
         See https://github.com/manoelcampos/cloudsim-plus/issues/94
@@ -140,6 +149,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
 
         final int numberOfHosts = getHostList().size();
 
+        this.hostsUnderloaded = false;
         while (true) {
             if (numberOfHosts == ignoredSourceHosts.size()) {
                 break;
@@ -149,6 +159,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
             if (underloadedHost == Host.NULL) {
                 break;
             }
+            this.hostsUnderloaded = true;
 
             LOGGER.info("{}: VmAllocationPolicy: Underloaded hosts: {}", getDatacenter().getSimulation().clockStr(), underloadedHost);
 
@@ -229,13 +240,15 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      *         false otherwise
      */
     private boolean isNotHostOverloadedAfterAllocation(final Host host, final Vm vm) {
-        if (!host.createTemporaryVm(vm)) {
+        final Vm tempVm = new VmSimple(vm);
+
+        if (!host.createTemporaryVm(tempVm)) {
             return false;
         }
 
         final double usagePercent = getHostCpuPercentRequested(host);
         final boolean notOverloadedAfterAllocation = !isHostOverloaded(host, usagePercent);
-        host.destroyTemporaryVm(vm);
+        host.destroyTemporaryVm(tempVm);
         return notOverloadedAfterAllocation;
     }
 
@@ -342,28 +355,12 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
      * @param hostStream a {@link Stream} containing the Hosts after passing the basic filtering
      * @return an {@link Optional} containing a suitable Host to place the VM or an empty {@link Optional} if not found
      * @see #findHostForVm(Vm, Set)
-     * @see #additionalHostFilters(Vm, Stream)
      */
     protected Optional<Host> findHostForVmInternal(final Vm vm, final Stream<Host> hostStream){
         final Comparator<Host> hostPowerConsumptionComparator =
             comparingDouble(host -> getPowerDifferenceAfterAllocation(host, vm));
 
-        return additionalHostFilters(vm, hostStream).min(hostPowerConsumptionComparator);
-    }
-
-    /**
-     * Applies additional filters to select a Host to place a given VM.
-     * This implementation filters the stream of Hosts to get those ones
-     * that the placement of the VM impacts its power usage.
-     *
-     * <p>This method can be overridden by sub-classes to change filtering.</p>
-     *
-     * @param vm the VM to find a Host to be placed into
-     * @param hostStream a {@link Stream} containing the Hosts after passing the basic filtering
-     * @return the Hosts {@link Stream} after applying the additional filters
-     */
-    private Stream<Host> additionalHostFilters(final Vm vm, final Stream<Host> hostStream){
-        return hostStream.filter(host -> getPowerAfterAllocation(host, vm) > 0);
+        return hostStream.min(hostPowerConsumptionComparator);
     }
 
     /**
@@ -602,6 +599,12 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         savedAllocation.clear();
         for (final Host host : getHostList()) {
             for (final Vm vm : host.getVmList()) {
+                /* TODO: this VM loop has a quadratic wost-case complexity (when
+                    all Vms already in the VM list are migrating into this Host).
+                *  Instead of looping over the vmsMigratingIn list for every VM,
+                *  we could add a Host migratingIn attribute to the Vm.
+                * Then, for every VM on the Host, we check this VM attribute
+                * to see if the VM is migrating into the Host. */
                 if (!host.getVmsMigratingIn().contains(vm)) {
                     savedAllocation.put(vm, host);
                 }
@@ -623,7 +626,7 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
         for (final Vm vm : savedAllocation.keySet()) {
             final Host host = savedAllocation.get(vm);
             if (!host.createTemporaryVm(vm)) {
-                LOGGER.error("Couldn't restore {} on {}", vm, host);
+                LOGGER.error("VmAllocationPolicy: Couldn't restore {} on {}", vm, host);
                 return;
             }
         }
@@ -736,5 +739,15 @@ public abstract class VmAllocationPolicyMigrationAbstract extends VmAllocationPo
     @Override
     public final boolean isVmMigrationSupported() {
         return true;
+    }
+
+    @Override
+    public boolean areHostsUnderloaded() {
+        return hostsUnderloaded;
+    }
+
+    @Override
+    public boolean areHostsOverloaded() {
+        return hostsOverloaded;
     }
 }

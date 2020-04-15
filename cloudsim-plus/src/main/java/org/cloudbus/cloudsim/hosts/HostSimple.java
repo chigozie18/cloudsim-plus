@@ -25,8 +25,6 @@ import org.cloudbus.cloudsim.vms.VmGroup;
 import org.cloudbus.cloudsim.vms.VmStateHistoryEntry;
 import org.cloudsimplus.listeners.EventListener;
 import org.cloudsimplus.listeners.HostUpdatesVmsProcessingEventInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.BinaryOperator;
@@ -53,8 +51,6 @@ import static java.util.stream.Collectors.*;
  * @since CloudSim Toolkit 1.0
  */
 public class HostSimple implements Host {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HostSimple.class.getSimpleName());
-
     private static long defaultRamCapacity = (long)Conversion.gigaToMega(10);
     private static long defaultBwCapacity = 1000;
     private static long defaultStorageCapacity = (long)Conversion.gigaToMega(500);
@@ -351,20 +347,20 @@ public class HostSimple implements Host {
             setActive(false);
         }
 
-        double nextSimulationTime = Double.MAX_VALUE;
+        double nextSimulationDelay = Double.MAX_VALUE;
 
         /* Uses an indexed for to avoid ConcurrentModificationException,
          * e.g., in cases when Vm is destroyed during simulation execution.*/
         for (int i = 0; i < vmList.size(); i++) {
             final Vm vm = vmList.get(i);
-            final double nextTime = vm.updateProcessing(currentTime, vmScheduler.getAllocatedMips(vm));
-            nextSimulationTime = nextTime > 0 ? Math.min(nextTime, nextSimulationTime) : nextSimulationTime;
+            final double delay = vm.updateProcessing(currentTime, vmScheduler.getAllocatedMips(vm));
+            nextSimulationDelay = delay > 0 ? Math.min(delay, nextSimulationDelay) : nextSimulationDelay;
         }
 
-        notifyOnUpdateProcessingListeners(nextSimulationTime);
+        notifyOnUpdateProcessingListeners(currentTime);
         addStateHistory(currentTime);
 
-        return nextSimulationTime;
+        return nextSimulationDelay;
     }
 
     private void notifyOnUpdateProcessingListeners(final double nextSimulationTime) {
@@ -402,8 +398,7 @@ public class HostSimple implements Host {
             return false;
         }
 
-        vmList.add(vm);
-        return true;
+        return vmList.add(vm);
     }
 
     /**
@@ -876,7 +871,6 @@ public class HostSimple implements Host {
 
     @Override
     public void removeMigratingInVm(final Vm vm) {
-        deallocateResourcesOfVm(vm);
         vmsMigratingIn.remove(vm);
         vmList.remove(vm);
         vm.setInMigration(false);

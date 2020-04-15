@@ -18,6 +18,8 @@ import org.cloudbus.cloudsim.resources.DatacenterStorage;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudsimplus.listeners.EventListener;
 import org.cloudsimplus.listeners.HostEventInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -34,6 +36,8 @@ import java.util.List;
  * @since CloudSim Plus 1.0
  */
 public interface Datacenter extends SimEntity, PowerAware, TimeZoned {
+    Logger LOGGER = LoggerFactory.getLogger(Datacenter.class.getSimpleName());
+
     /**
      * A property that implements the Null Object Design Pattern for
      * {@link Datacenter} objects.
@@ -249,6 +253,7 @@ public interface Datacenter extends SimEntity, PowerAware, TimeZoned {
      * Enable VM migrations.
      *
      * @return
+     * @see #getHostSearchForMigrationDelay()
      */
     Datacenter enableMigrations();
 
@@ -282,4 +287,22 @@ public interface Datacenter extends SimEntity, PowerAware, TimeZoned {
      * @return
      */
     DatacenterPowerSupply getPowerSupply();
+
+    /**
+     * Gets the time interval before trying to find suitable Hosts to migrate VMs
+     * from an under or overload Host again.
+     * @return the Host search delay (in seconds)
+     */
+    double getHostSearchForMigrationDelay();
+
+    /**
+     * Sets the time interval before trying to find suitable Hosts to migrate VMs
+     * from an under or overload Host again.
+     * @param hostSearchDelay the new delay to set (in seconds).
+     *                        Give a positive value to define an actual delay or
+     *                        a negative value to indicate a new Host search for VM migration
+     *                        must be tried as soon as possible
+     * @return
+     */
+    Datacenter setHostSearchRetryDelay(double hostSearchDelay);
 }

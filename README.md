@@ -33,12 +33,11 @@
 
 <a id="overview"></a>
 
-# 1. CloudSim Plus Overview [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20CloudSim%20Plus:%20a%20modern%20and%20full-featured%20framework%20for%20cloud%20computing%20simulation.%20It's%20actively%20maintained%20and%20fully%20documented,%20making%20your%20research%20easier.%20via%20@manoelcampos&url=https://cloudsimplus.org&hashtags=cloudsimplus,cloud,computing,simulation,framework) [![GitHub stars](https://img.shields.io/github/stars/manoelcampos/cloudsim-plus.svg?style=social&label=Contribute.%20Star%20It.%20&#11088;%20&#128077;&maxAge=2592000)](https://github.com/manoelcampos/cloudsim-plus/)
+# 1. CloudSim Plus Overview [![Open in Gitpod (You need to log in at gitpod.io first)](https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-%230092CF.svg)](https://gitpod.io/#https://github.com/manoelcampos/cloudsim-plus) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20CloudSim%20Plus:%20a%20modern%20and%20full-featured%20framework%20for%20cloud%20computing%20simulation.%20It's%20actively%20maintained%20and%20fully%20documented,%20making%20your%20research%20easier.%20via%20@manoelcampos&url=https://cloudsimplus.org&hashtags=cloudsimplus,cloud,computing,simulation,framework) [![GitHub stars](https://img.shields.io/github/stars/manoelcampos/cloudsim-plus.svg?style=social&label=Contribute.%20Star%20It.%20&#11088;%20&#128077;&maxAge=2592000)](https://github.com/manoelcampos/cloudsim-plus/)
 
 [![Build Status](https://img.shields.io/travis/manoelcampos/cloudsim-plus/master.svg)](https://travis-ci.org/manoelcampos/cloudsim-plus) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3f132b184d5e475dbbcd356ee84499fc)](https://www.codacy.com/app/manoelcampos/cloudsim-plus?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=manoelcampos/cloudsim-plus&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/3f132b184d5e475dbbcd356ee84499fc)](https://www.codacy.com/app/manoelcampos/cloudsim-plus?utm_source=github.com&utm_medium=referral&utm_content=manoelcampos/cloudsim-plus&utm_campaign=Badge_Coverage) [![Maven Central](https://img.shields.io/maven-central/v/org.cloudsimplus/cloudsim-plus.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.cloudsimplus%22%20AND%20a:%22cloudsim-plus%22) [![Documentation Status](https://readthedocs.org/projects/cloudsimplus/badge/?version=latest)](http://cloudsimplus.rtfd.io/en/latest/?badge=latest) 
 [![GitHub Closed Issues](https://img.shields.io/github/issues-closed-raw/manoelcampos/cloudsim-plus.svg?style=rounded-square)](http://github.com/manoelcampos/cloudsim-plus/issues) 
 [![GPL licensed](https://img.shields.io/badge/license-GPL-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-[![Open in Gitpod (You need to log in at gitpod.io first)](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/manoelcampos/cloudsim-plus)
 
 
 CloudSim Plus is a full-featured, highly extensible simulation framework enabling modeling, simulation, 
@@ -199,9 +198,12 @@ Below are the steps to start using the project:
 
 ## 4.3 Adding it as a Maven Dependency into Your Own Project
 
-You can add CloudSim Plus API module (which is the only one required to build simulations) 
-as a dependency inside the pom.xml file of your own maven project, as presened below. 
+You can add CloudSim Plus API module (which is the only one required to build simulations) as a dependency inside your own Maven or Gradle project.
 This way you can start building your simulations from scratch.
+
+### 4.3.1 Maven
+
+Add the following dependency into the pom.xml file of your own Maven project. 
 
 ```xml
 <dependency>
@@ -210,6 +212,17 @@ This way you can start building your simulations from scratch.
     <!-- Set a specific version or use the latest one -->
     <version>LATEST</version>
 </dependency>
+```
+
+### 4.3.2 Gradle
+
+Add the following dependency into the build.gradle file of your own Gradle project. 
+
+```groovy
+dependencies {
+    //Set a specific version or use the latest one
+    implementation 'org.cloudsimplus:cloudsim-plus:LATEST'
+}
 ```
 
 <p align="right"><a href="#top">:arrow_up:</a></p>

@@ -8,6 +8,7 @@ package org.cloudbus.cloudsim.datacenters;
 
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicy;
 import org.cloudbus.cloudsim.allocationpolicies.VmAllocationPolicySimple;
+import org.cloudbus.cloudsim.allocationpolicies.migration.VmAllocationPolicyMigration;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.core.CloudSimEntity;
 import org.cloudbus.cloudsim.core.CloudSimTags;
@@ -21,13 +22,12 @@ import org.cloudbus.cloudsim.resources.FileStorage;
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletScheduler;
 import org.cloudbus.cloudsim.util.Conversion;
 import org.cloudbus.cloudsim.util.MathUtil;
+import org.cloudbus.cloudsim.util.TimeUtil;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudsimplus.autoscaling.VerticalVmScaling;
 import org.cloudsimplus.faultinjection.HostFaultInjection;
 import org.cloudsimplus.listeners.EventListener;
 import org.cloudsimplus.listeners.HostEventInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -44,7 +44,16 @@ import static java.util.stream.Collectors.toList;
  * @since CloudSim Toolkit 1.0
  */
 public class DatacenterSimple extends CloudSimEntity implements Datacenter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatacenterSimple.class.getSimpleName());
+
+    /**
+     * The last time some Host on the Datacenter was under or overloaded.
+     *
+     * <p>Double.MIN_VALUE is surprisingly not a negative number.
+     * Initializing this attribute with a too small value makes that the first
+     * time an under or overload condition is detected,
+     * it will try immediately to find suitable Hosts for migration.</p>
+     */
+    private double lastTimeUnderOrOverloadedHostsDetected = -Double.MAX_VALUE;
 
     /**
      * @see #getBandwidthPercentForMigration()
@@ -83,6 +92,10 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * @see #getTimeZone()
      */
     private double timeZone;
+    private Map<Vm, Host> lastMigrationMap;
+
+    /** @see #getHostSearchForMigrationDelay() */
+    private double hostSearchForMigrationDelay;
 
     /**
      * Creates a Datacenter with an empty {@link #getDatacenterStorage() storage}
@@ -175,6 +188,9 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
         this.characteristics = new DatacenterCharacteristicsSimple(this);
         this.bandwidthPercentForMigration = DEF_BW_PERCENT_FOR_MIGRATION;
         this.migrationsEnabled = true;
+        this.hostSearchForMigrationDelay = -1;
+
+        this.lastMigrationMap = Collections.emptyMap();
 
         setVmAllocationPolicy(vmAllocationPolicy);
     }
@@ -467,7 +483,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * @param nextFinishingCloudletTime the predicted completion time of the earliest finishing cloudlet
      * (which is a relative delay from the current simulation time),
      * or {@link Double#MAX_VALUE} if there is no next Cloudlet to execute
-     * @return next time cloudlets processing will be updated
+     * @return next time cloudlets processing will be updated (a relative delay from the current simulation time)
      *
      * @see #updateCloudletProcessing()
      */
@@ -476,7 +492,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
             return nextFinishingCloudletTime;
         }
 
-        final double time = Math.floor(getSimulation().clock());
+        final double time = Math.floor(clock());
         final double mod = time % schedulingInterval;
         /* If a scheduling interval is set, ensures the next time that Cloudlets' processing
          * are updated is multiple of the scheduling interval.
@@ -485,6 +501,10 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
          * is scheduled to the next time multiple of the scheduling interval.*/
         final double delay = mod == 0 ? schedulingInterval : (time - mod + schedulingInterval) - time;
         return Math.min(nextFinishingCloudletTime, delay);
+    }
+
+    private double clock() {
+        return getSimulation().clock();
     }
 
     /**
@@ -498,7 +518,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
         final double estimatedFinishTime = cloudlet.getVm()
             .getCloudletScheduler().cloudletResume(cloudlet);
 
-        if (estimatedFinishTime > 0.0 && estimatedFinishTime > getSimulation().clock()) {
+        if (estimatedFinishTime > 0.0 && estimatedFinishTime > clock()) {
             schedule(this,
                 getCloudletProcessingUpdateInterval(estimatedFinishTime),
                 CloudSimTags.VM_UPDATE_CLOUDLET_PROCESSING);
@@ -623,21 +643,24 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
         vmAllocationPolicy.deallocateHostForVm(vm);
 
         targetHost.removeMigratingInVm(vm);
-        final boolean result = vmAllocationPolicy.allocateHostForVm(vm, targetHost);
+        final boolean migrated = vmAllocationPolicy.allocateHostForVm(vm, targetHost);
+        if(migrated) {
+            /*When the VM is destroyed from the source host, it's removed from the vmExecList.
+            After migration, we need to add it again.*/
+            vm.getBroker().getVmExecList().add(vm);
 
-        if (ack) {
-            sendNow(evt.getSource(), CloudSimTags.VM_CREATE_ACK, vm);
+            if (ack) {
+                sendNow(evt.getSource(), CloudSimTags.VM_CREATE_ACK, vm);
+            }
         }
 
-        vm.setInMigration(false);
-
         final SimEvent event = getSimulation().findFirstDeferred(this, new PredicateType(CloudSimTags.VM_MIGRATE));
-        if (event == null || event.getTime() > getSimulation().clock()) {
+        if (event == null || event.getTime() > clock()) {
             //Updates processing of all Hosts again to get the latest state for all Hosts after the VMs migrations
             updateHostsProcessing();
         }
 
-        if (result)
+        if (migrated)
             LOGGER.info("{}: Migration of {} to {} is completed", getSimulation().clockStr(), vm, targetHost);
         else LOGGER.error("{}: {}: Allocation of {} to the destination Host failed!", getSimulation().clockStr(), this, vm);
     }
@@ -698,23 +721,23 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * or {@link Double#MAX_VALUE} if there is no next Cloudlet to execute
      */
     private double updateHostsProcessing() {
-        double nextSimulationTime = Double.MAX_VALUE;
+        double nextSimulationDelay = Double.MAX_VALUE;
         for (final Host host : getHostList()) {
-            final double time = host.updateProcessing(getSimulation().clock());
-            nextSimulationTime = Math.min(time, nextSimulationTime);
+            final double delay = host.updateProcessing(clock());
+            nextSimulationDelay = Math.min(delay, nextSimulationDelay);
         }
 
         // Guarantees a minimal interval before scheduling the event
         final double minTimeBetweenEvents = getSimulation().getMinTimeBetweenEvents()+0.01;
-        nextSimulationTime = nextSimulationTime == 0 ? nextSimulationTime : Math.max(nextSimulationTime, minTimeBetweenEvents);
+        nextSimulationDelay = nextSimulationDelay == 0 ? nextSimulationDelay : Math.max(nextSimulationDelay, minTimeBetweenEvents);
 
-        if (nextSimulationTime == Double.MAX_VALUE) {
-            return nextSimulationTime;
+        if (nextSimulationDelay == Double.MAX_VALUE) {
+            return nextSimulationDelay;
         }
 
         powerSupply.computePowerUtilizationForTimeSpan(lastProcessTime);
 
-        return nextSimulationTime;
+        return nextSimulationDelay;
     }
 
     /**
@@ -734,24 +757,24 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
         if (!isTimeToUpdateCloudletsProcessing()){
             return Double.MAX_VALUE;
         }
-        double nextSimulationTime = updateHostsProcessing();
+        double nextSimulationDelay = updateHostsProcessing();
 
-        if (nextSimulationTime != Double.MAX_VALUE) {
-            nextSimulationTime = getCloudletProcessingUpdateInterval(nextSimulationTime);
-            schedule(nextSimulationTime, CloudSimTags.VM_UPDATE_CLOUDLET_PROCESSING);
+        if (nextSimulationDelay != Double.MAX_VALUE) {
+            nextSimulationDelay = getCloudletProcessingUpdateInterval(nextSimulationDelay);
+            schedule(nextSimulationDelay, CloudSimTags.VM_UPDATE_CLOUDLET_PROCESSING);
         }
-        setLastProcessTime(getSimulation().clock());
+        setLastProcessTime(clock());
 
         checkIfVmMigrationsAreNeeded();
-        return nextSimulationTime;
+        return nextSimulationDelay;
     }
 
     private boolean isTimeToUpdateCloudletsProcessing() {
         // if some time passed since last processing
         // R: for term is to allow loop at simulation start. Otherwise, one initial
         // simulation step is skipped and schedulers are not properly initialized
-        return getSimulation().clock() < 0.111 ||
-               getSimulation().clock() >= lastProcessTime + getSimulation().getMinTimeBetweenEvents();
+        return clock() < 0.111 ||
+               clock() >= lastProcessTime + getSimulation().getMinTimeBetweenEvents();
     }
 
     /**
@@ -761,14 +784,49 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
      * <p><b>This is an expensive operation for large scale simulations.</b></p>
      */
     private void checkIfVmMigrationsAreNeeded() {
-        if (!isMigrationsEnabled()) {
+        if (!isTimeToSearchForSuitableHosts()) {
             return;
         }
 
-        final Map<Vm, Host> migrationMap = getVmAllocationPolicy().getOptimizedAllocationMap(getVmList());
-        for (final Map.Entry<Vm, Host> entry : migrationMap.entrySet()) {
+        lastMigrationMap = getVmAllocationPolicy().getOptimizedAllocationMap(getVmList());
+        for (final Map.Entry<Vm, Host> entry : lastMigrationMap.entrySet()) {
             requestVmMigration(entry.getKey(), entry.getValue());
         }
+
+        if(areThereUnderOrOverloadedHostsAndMigrationIsSupported()){
+            logHostSearchRetry();
+            lastTimeUnderOrOverloadedHostsDetected = clock();
+        }
+    }
+
+    private void logHostSearchRetry() {
+        if(lastMigrationMap.isEmpty()) {
+            final String msg = hostSearchForMigrationDelay > 0 ?
+                                    "in " + TimeUtil.secondsToStr(hostSearchForMigrationDelay) :
+                                    "as soon as possible";
+            LOGGER.warn(
+                "{}: Datacenter: An under or overload situation was detected but currently, however there aren't suitable Hosts to manage that. Trying again {}.",
+                clock(), msg);
+        }
+    }
+
+    /**
+     * Indicates if it's time to check if suitable Hosts are available to migrate VMs
+     * from under or overload Hosts.
+     * @return
+     */
+    private boolean isTimeToSearchForSuitableHosts(){
+        final double elapsedSecs = clock() - lastTimeUnderOrOverloadedHostsDetected;
+        return isMigrationsEnabled() && (elapsedSecs >= hostSearchForMigrationDelay);
+    }
+
+    private boolean areThereUnderOrOverloadedHostsAndMigrationIsSupported(){
+        if(vmAllocationPolicy instanceof VmAllocationPolicyMigration){
+            final VmAllocationPolicyMigration policy = (VmAllocationPolicyMigration) vmAllocationPolicy;
+            return policy.areHostsUnderOrOverloaded();
+        }
+
+        return false;
     }
 
     @Override
@@ -787,10 +845,10 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
             delay, getBandwidthPercentForMigration()*100);
         LOGGER.info("{}: {}: Migration of {} is started. {}", currentTime, getName(), msg1, msg2);
 
-        sourceHost.addVmMigratingOut(sourceVm);
-        targetHost.addMigratingInVm(sourceVm);
-
-        send(this, delay, CloudSimTags.VM_MIGRATE, new TreeMap.SimpleEntry<>(sourceVm, targetHost));
+        if(targetHost.addMigratingInVm(sourceVm)) {
+            sourceHost.addVmMigratingOut(sourceVm);
+            send(this, delay, CloudSimTags.VM_MIGRATE, new TreeMap.SimpleEntry<>(sourceVm, targetHost));
+        }
     }
 
     /**
@@ -962,7 +1020,7 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
     }
 
     private <T extends Host> void notifyOnHostAvailableListeners(final T host) {
-        onHostAvailableListeners.forEach(listener -> listener.update(HostEventInfo.of(listener, host, getSimulation().clock())));
+        onHostAvailableListeners.forEach(listener -> listener.update(HostEventInfo.of(listener, host, clock())));
     }
 
     @Override
@@ -1067,4 +1125,19 @@ public class DatacenterSimple extends CloudSimEntity implements Datacenter {
 
     @Override
     public DatacenterPowerSupply getPowerSupply(){ return powerSupply; }
+
+    @Override
+    public double getHostSearchForMigrationDelay() {
+        return hostSearchForMigrationDelay;
+    }
+
+    @Override
+    public Datacenter setHostSearchRetryDelay(final double hostSearchDelay) {
+        if(hostSearchDelay == 0){
+            throw new IllegalArgumentException("hostSearchDelay cannot be 0. Set a positive value to define an actual delay or a negative value to indicate a new Host search must be tried as soon as possible.");
+        }
+
+        this.hostSearchForMigrationDelay = hostSearchDelay;
+        return this;
+    }
 }

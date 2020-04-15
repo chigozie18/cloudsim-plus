@@ -244,6 +244,20 @@ public class VmSimple extends CustomerEntityAbstract implements Vm {
         expectedFreePesNumber = numberOfPes;
     }
 
+    /**
+     * A copy constructor that creates a VM based on the configuration of another one.
+     * The created VM will have the same MIPS capacity, number of PEs,
+     * BW, RAM and size of the given VM, but a default CloudletScheduler and no broker.
+     * @param sourceVm the VM to be cloned
+     * @see #VmSimple(double, long)
+     */
+    public VmSimple(final Vm sourceVm) {
+        this(sourceVm.getMips(), sourceVm.getNumberOfPes());
+        this.setBw(sourceVm.getBw().getCapacity())
+            .setRam(sourceVm.getRam().getCapacity())
+            .setSize(sourceVm.getStorage().getCapacity());
+    }
+
     @Override
     public double updateProcessing(List<Double> mipsShare) {
         return updateProcessing(getSimulation().clock(), mipsShare);
@@ -256,7 +270,7 @@ public class VmSimple extends CustomerEntityAbstract implements Vm {
         if (!cloudletScheduler.isEmpty()) {
             setLastBusyTime();
         }
-        final double nextEventDelay = cloudletScheduler.updateProcessing(currentTime, mipsShare);
+        final double nextSimulationDelay = cloudletScheduler.updateProcessing(currentTime, mipsShare);
         notifyOnUpdateProcessingListeners();
 
         /* If the current time is some value with the decimals greater than x.0
@@ -271,11 +285,11 @@ public class VmSimple extends CustomerEntityAbstract implements Vm {
         final double decimals = currentTime - (int) currentTime;
         utilizationHistory.addUtilizationHistory(currentTime);
         getBroker().requestIdleVmDestruction(this);
-        if (nextEventDelay == Double.MAX_VALUE) {
-            return nextEventDelay;
+        if (nextSimulationDelay == Double.MAX_VALUE) {
+            return nextSimulationDelay;
         }
 
-        return nextEventDelay - decimals < 0 ? nextEventDelay : nextEventDelay - decimals;
+        return nextSimulationDelay - decimals < 0 ? nextSimulationDelay : nextSimulationDelay - decimals;
     }
 
     @Override

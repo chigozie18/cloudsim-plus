@@ -22,6 +22,8 @@ import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudbus.cloudsim.vms.VmUtilizationHistory;
 import org.cloudsimplus.listeners.EventListener;
 import org.cloudsimplus.listeners.HostUpdatesVmsProcessingEventInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
@@ -42,6 +44,8 @@ import java.util.SortedMap;
  * @since CloudSim Plus 1.0
  */
 public interface Host extends Machine, Comparable<Host> {
+    Logger LOGGER = LoggerFactory.getLogger(Host.class.getSimpleName());
+
     /**
      * The default value for the {@link #getIdleShutdownDeadline()}.
      * This value indicates that the Host won't be shutdown when becoming idle.
@@ -160,7 +164,9 @@ public interface Host extends Machine, Comparable<Host> {
     double getTotalMipsCapacity();
 
     /**
-     * Removes a migrating in vm.
+     * Removes a VM migrating into this Host from the migrating-in list,
+     * so that the VM can be actually placed into the Host
+     * and the migration process finished.
      *
      * @param vm the vm
      */
