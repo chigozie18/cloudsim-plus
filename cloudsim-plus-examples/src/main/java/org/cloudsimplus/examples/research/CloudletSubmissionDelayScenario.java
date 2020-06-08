@@ -69,7 +69,7 @@ public class CloudletSubmissionDelayScenario {
         datacenter0 = CloudCreator.createDatacenter(simulation, hostList);  // creates a datacenter and it's hosts. The number of hosts can be changed by modifying the fields       
         
         //Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-        broker0 = new DatacenterBrokerFastFit(simulation); 
+        broker0 = new DatacenterBrokerBestFit(simulation); 
         
         vmList = CloudCreator.createVms(1, 4, 1400, 1024, 500, 5000, "time-shared");		      
 

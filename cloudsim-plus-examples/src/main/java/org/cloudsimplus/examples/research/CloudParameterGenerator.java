@@ -9,7 +9,7 @@ import java.util.Random;
 
 /**
  * 
- * A class containing methods for generating parameters for datacenters, hosts, vms and cloudlets. The generated parameters are stored 
+ * A class containing methods for generating parameters for cloudlets. The generated parameters are stored 
  * in a CSV file with a vertical bar (|) to denote delimiters.
  * 
  * @author Chigozie Asikaburu
@@ -20,7 +20,7 @@ public class CloudParameterGenerator {
 	public static void main(String[] args) {
 
 		String filePath = "Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv";
-		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1, 0, 600, 2);
+		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1000, 0, 600, 2);
 		// For full utilization model cloudlets the last two parameters can ignored and can be any value hence the two zeros	
 	}
 
@@ -127,7 +127,7 @@ public class CloudParameterGenerator {
 			
 			bufferedWriter.close(); // Close the stream
 			System.out.println("Successfully wrote to a file!");
-		} 
+		}           
 
 		catch (Exception e) {
 			e.printStackTrace();

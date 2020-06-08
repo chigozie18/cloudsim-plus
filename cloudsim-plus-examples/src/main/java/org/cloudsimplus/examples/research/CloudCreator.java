@@ -70,7 +70,7 @@ public class CloudCreator {
 		Datacenter datacenter = new DatacenterSimple(simulation, hostList);
 		datacenter.setSchedulingInterval(schedulingInterval);
 		//Uses a VmAllocationPolicySimple by default to allocate VMs
-		return datacenter;  // the simulation paramter represents the instance of the simulation the datacenter (entity) is related to
+		return datacenter;  
 	}
 
 	/**
@@ -253,7 +253,7 @@ public class CloudCreator {
 					int ram = Integer.parseInt(stringTokenizer.nextElement().toString());
 					int bw = Integer.parseInt(stringTokenizer.nextElement().toString());
 					int storage = Integer.parseInt(stringTokenizer.nextElement().toString());
-					String vmScheduler = stringTokenizer.nextElement().toString();
+					String vmScheduler = stringTokenizer.nextElement().toString(); 
 
 					final List<Pe> peList = new ArrayList<>(pes);  // list of Host's CPUs (Processing Elements, PEs)
 

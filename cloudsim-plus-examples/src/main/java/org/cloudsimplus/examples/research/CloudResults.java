@@ -1,6 +1,8 @@
 package org.cloudsimplus.examples.research;
 
 import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
@@ -31,8 +33,7 @@ public class CloudResults {
 	}
 	
 	/**
-	 * Prints out extra results for cloudlets that have finished executing (average finish time, average execution time, average arrival time). It also prints out the arrival times and submission delays  
-	 * for all cloudlets. 
+	 * Prints out extra results for cloudlets that have finished executing (average finish time, average execution time, average arrival time, average turnaround time). 
 	 * 
 	 * @param finishedCloudlets the list of all finished cloudlets
 	 */
@@ -109,10 +110,32 @@ public class CloudResults {
 	public static void printAllArrivalTimes (List<Cloudlet> finishedCloudlets) { 
 		DecimalFormat df = new DecimalFormat("0.00");	
 
+		// sorts cloudlets based on their arrival (from earliest to latestest)
+		Collections.sort(finishedCloudlets, Comparator.comparingDouble(Cloudlet::getLastDatacenterArrivalTime));  
+		
 		System.out.println("Arrival Times: \n");
 		for (int i = 0; i < finishedCloudlets.size(); i++) {
 			// gets the sum of all cloudlet finish times
 			System.out.println("Cloudlet " + finishedCloudlets.get(i).getId() + " arrived at : " + df.format(finishedCloudlets.get(i).getLastDatacenterArrivalTime()) + " seconds");
+		}
+		System.out.println("\n");
+	}
+	
+	/**
+	 * Prints out all arrival times of cloudlets along with their job ids that have finished executing.  
+	 * 
+	 * @param finishedCloudlets the list of all finished cloudlets
+	 */
+	public static void printAllArrivalTimesWithJobID (List<Cloudlet> finishedCloudlets) { 
+		DecimalFormat df = new DecimalFormat("0.00");	
+
+		// sorts cloudlets based on their arrival (from earliest to latestest)
+		Collections.sort(finishedCloudlets, Comparator.comparingDouble(Cloudlet::getLastDatacenterArrivalTime));  
+		
+		System.out.println("Arrival Times: \n");
+		for (int i = 0; i < finishedCloudlets.size(); i++) {
+			// gets the sum of all cloudlet finish times
+			System.out.println("Cloudlet " + finishedCloudlets.get(i).getId() + " with a job id of: " + finishedCloudlets.get(i).getJobId() + " arrived at : " + df.format(finishedCloudlets.get(i).getLastDatacenterArrivalTime()) + " seconds");
 		}
 		System.out.println("\n");
 	}

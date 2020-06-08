@@ -68,7 +68,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 			// if a vm in this datacenter is free then assign the cloudlet to that vm       	
 			mappedVm = datacenterVmList
 				.stream()
-				.filter(vm -> vm.getFreePesNumber() > 0)  // finds vms that have at least one free PE (in our scenario this is a free/idle vm)
+				.filter(vm -> getNumOfExecutingCloudlets(vm) == 0 && vm.getExpectedFreePesNumber() > 0)  // finds vms that have at least one free PE (in our scenario this is a free/idle vm)
 				.min(Comparator.comparingLong(Vm::getExpectedFreePesNumber))  // this attribute doesn't matter and is used to pick any free vm (change this) 
 				.orElse(Vm.NULL);			
 
@@ -76,7 +76,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 				mappedVm = datacenterVmList
 					.stream()
-					.max(Comparator.comparingLong(vm -> getTotalCloudletMips(vm)))  // select the vm with the shortest total cloudlet mips 
+					.max(Comparator.comparingLong(vm -> getTotalCloudletMips(vm)))  // select the vm with the largest total cloudlet mips 
 					.orElse(Vm.NULL);	
 			} 
 		}
@@ -88,7 +88,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 			mappedVm = datacenterVmList
 				.stream()
-				.filter(vm -> vm.getFreePesNumber() > 0)  // finds vms that have at least one free PE (in our scenario this is a free/idle vm)
+				.filter(vm -> getNumOfExecutingCloudlets(vm) == 0 && vm.getExpectedFreePesNumber() > 0)  // finds vms that have at least one free PE (in our scenario this is a free/idle vm)
 				.min(Comparator.comparingLong(Vm::getExpectedFreePesNumber))  // this attribute doesn't matter and just returns some vm (change this) 
 				.orElse(Vm.NULL);
 
@@ -96,7 +96,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 				mappedVm = datacenterVmList
 					.stream()
-					.max(Comparator.comparingLong(vm -> getTotalCloudletMips(vm)))  // gets the vm with the shortest total cloudlet mips 
+					.max(Comparator.comparingLong(vm -> getTotalCloudletMips(vm)))  // gets the vm with the largest total cloudlet mips 
 					.orElse(Vm.NULL);	
 			}
 		}
@@ -176,6 +176,18 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 		long totalCloudletMips = totalExecutingCloudletMips + totalWaitingCloudletMips;
 
 		return totalCloudletMips; 	
+	}
+	
+	/**
+	 * Gets the total mips of all waiting cloudlets and mips remaining so far from currently executing cloudlets in a given vm.
+	 * 
+	 * @param datacenter the datacenter to retrieve the list of vms 
+	 */
+	private long getNumOfExecutingCloudlets(Vm vm) {  	
+		
+		int cloudletExecListSize = vm.getCloudletScheduler().getCloudletExecList().size();  // gets all cloudlets which are executing in a vm
+
+		return cloudletExecListSize; 	
 	}
 
 }
