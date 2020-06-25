@@ -1,11 +1,12 @@
 package org.cloudsimplus.examples.research.scenariopart1;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
-import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
@@ -14,62 +15,98 @@ import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 import org.cloudsimplus.examples.research.CloudCreator;
 import org.cloudsimplus.examples.research.CloudResults;
-import org.cloudsimplus.examples.research.DatacenterBrokerCustomFit;
+import org.cloudsimplus.examples.research.DatacenterBrokerCustomRoundRobin;
+import org.cloudsimplus.examples.research.DatacenterBrokerBestCustomFit;
+import org.cloudsimplus.examples.research.DatacenterBrokerWorstCustomFit;
+import org.cloudsimplus.listeners.EventInfo;
 
 /**
- * Creates a simple scenario showing one host running on one datacenter executing cloudlets that arrive at a random time. The cloudlet's arrival is controlled by 
- * delaying the submission of the cloudlets.
  * 
- * @author chigozieasikaburu
+ * 
+ * @author Chigozie Asikaburu
  *
  */
 public class Scenario2 {
-    
+
     private final CloudSim simulation;
     private DatacenterBroker broker0;
-    private List<Vm> vmList, vmList2;
+    private List<Vm> vmList, vmList2, vmList3;
     private List<Cloudlet> cloudletList, cloudletList2, cloudletList3;
     private List<Host> hostList, hostList2;
     private Datacenter datacenter0, datacenter1;
     private final List<Cloudlet> finishedCloudlets;
+    private int cloudletTracker = 0; // keeps the index of a cloudlet (in a list) that last arrived dynamically
+    private String localDirectory = System.getProperty("user.dir");
 
     public static void main(String[] args) {
         new Scenario2();
     }
-    
+
     private Scenario2() {
-    
-        simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
-        
-        // Creates a list of hosts 
-        hostList = CloudCreator.createHostsFromFile("Test_Data/Research Scenarios/Part1/Scenario2/Scenario2_Datacenter1Hosts.csv");
-        hostList2 = CloudCreator.createHostsFromFile("Test_Data/Research Scenarios/Part1/Scenario2/Scenario2_Datacenter2Hosts.csv");
 
-        datacenter0 = CloudCreator.createDatacenter(simulation, hostList);  // creates a datacenter and it's hosts      
-        datacenter1 = CloudCreator.createDatacenter(simulation, hostList2);  // creates a datacenter and it's hosts      
-        
-        //Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-        broker0 = new DatacenterBrokerCustomFit(simulation); 
-        
-        vmList = CloudCreator.createVmsFromFile("Test_Data/Research Scenarios/Part1/Scenario2/Scenario2_Datacenter1_Vms.csv");		      
-        vmList2 = CloudCreator.createVmsFromFile("Test_Data/Research Scenarios/Part1/Scenario2/Scenario2_Datacenter2_Vms.csv");		      
+		simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
+		simulation.terminateAt(4000);
+		// Creates a list of hosts 
+		hostList = CloudCreator.createHostsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario2/Datacenter1_Hosts.csv");
+		hostList2 = CloudCreator.createHostsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario2/Datacenter2_Hosts.csv");
 
-        cloudletList = CloudCreator.createCloudletsFromFile("Test_Data/Research Scenarios/Part1/Scenario2/Scenario2_Datacenter1_Cloudlets.csv");
-        cloudletList2 = CloudCreator.createCloudletsFromFile("Test_Data/Research Scenarios/Part1/Scenario2/Scenario2_Datacenter2_Cloudlets.csv");
+		datacenter0 = CloudCreator.createDatacenter(simulation, hostList, 1);  // creates a datacenter and it's hosts      
+		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts      
 
-        cloudletList3 = Stream.of(cloudletList, cloudletList2)
-                .flatMap(x -> x.stream())
-                .collect(Collectors.toList());  // creates a combined VM list to be submitted to the broker 
-        
-        broker0.submitCloudletList(cloudletList3);   // sends a list of cloudlet along with VMs which will execute the cloudlet to the broker 
-        broker0.submitVmList(vmList); 
-        broker0.submitVmList(vmList2);      
-        		
-        simulation.start();        
-        
-        finishedCloudlets = broker0.getCloudletFinishedList();
-                
-        CloudResults.printExtraResults2(finishedCloudlets);       
-        new CloudletsTableBuilder(finishedCloudlets).build();  
-    }
-}
+		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
+		broker0 = new DatacenterBrokerBestCustomFit(simulation); 
+
+		vmList = CloudCreator.createVmsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario2/Datacenter1_Vms.csv");		      
+		vmList2 = CloudCreator.createVmsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario2/Datacenter2_Vms.csv");		      
+
+		cloudletList = CloudCreator.createCloudletsFromFile2(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario2/Datacenter1_Cloudlets.csv");
+		cloudletList2 = CloudCreator.createCloudletsFromFile2(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario2/Datacenter2_Cloudlets.csv");
+
+		cloudletList3 = Stream.of(cloudletList, cloudletList2)
+				.flatMap(x -> x.stream())
+				.collect(Collectors.toList());  // creates a combined VM list to be submitted to the broker 
+
+		Collections.sort(cloudletList3, Comparator.comparingDouble(Cloudlet::getSubmissionDelay));  // sorts cloudlets based on their arrival (from earliest to latestest)
+
+		vmList3 = Stream.of(vmList, vmList2)
+				.flatMap(x -> x.stream())
+				.collect(Collectors.toList());
+
+		broker0.submitVmList(vmList3); 
+
+		simulation.addOnClockTickListener(this::clockTickListener);
+
+		simulation.start();        
+
+		finishedCloudlets = broker0.getCloudletFinishedList();
+
+		CloudResults.printExtraResults2(finishedCloudlets); 
+		CloudResults.printAverageTurnaroundTimeJobId(finishedCloudlets);
+		CloudResults.printAllArrivalTimesWithJobID(finishedCloudlets);
+		new CloudletsTableBuilder(finishedCloudlets).build();  
+	}
+
+	/**
+	 * Event listener which is called every time the simulation clock advances.
+	 * @param info information about the event happened.
+	 */
+	private void clockTickListener(final EventInfo info) {
+
+		if (cloudletTracker < cloudletList3.size()) {
+			int currentCloudletArrival = (int) cloudletList3.get(cloudletTracker).getSubmissionDelay();  // keeps track of the arrival time of the current dynamically arriving cloudlet 
+
+			if ((int) info.getTime() == currentCloudletArrival) {
+
+				// filter the list to find all cloudlets arriving at the same time
+				List<Cloudlet> cloudletList4 = cloudletList3.stream()
+						.filter(cloudlet -> cloudlet.getSubmissionDelay() == currentCloudletArrival).collect(Collectors.toList());
+
+				// sets the submission delay to 0 as we are simulating the dynamic arrival of cloudlets arriving at the submission delay
+				cloudletList4.forEach((cloudlet) -> cloudlet.setSubmissionDelay(0));  
+
+				broker0.submitCloudletList(cloudletList4); 
+				cloudletTracker = cloudletTracker + cloudletList4.size();  // increments the counter by the amount of cloudlets submitted      	
+			}
+		}
+	}
+}       

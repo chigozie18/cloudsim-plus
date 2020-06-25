@@ -78,27 +78,7 @@ public class DatacenterBrokerUtility {
 	 */
 	public static long getTotalCloudletMips(Vm vm) {  	
 
-		long totalExecutingCloudletMips = 0;
-		long totalWaitingCloudletMips = 0;
-
-		List<CloudletExecution> cloudletExecList = vm.getCloudletScheduler().getCloudletExecList();  // gets all cloudlets which are executing in a vm
-		// Ask the CloudSim Google Group for how to retrieve cloudletExecList (or just figure it out);
-		List<CloudletExecution> cloudletWaitingList = vm.getCloudletScheduler().getCloudletWaitingList();  // gets all cloudlets which are executing in a vm
-
-		// get the remaining mips of currently executing cloudlets 
-		for (int i = 0; i < cloudletExecList.size(); i++) {
-			totalExecutingCloudletMips = totalExecutingCloudletMips + cloudletExecList.get(i).getRemainingCloudletLength();
-		}
-
-		// get the remaining mips of currently waiting cloudlets 
-		for (int i = 0; i < cloudletWaitingList.size(); i++) {
-			// the remaining length of all waiting cloudlets will be the same as the cloudlet length before execution (cloudlet.getLength())
-			totalWaitingCloudletMips = totalWaitingCloudletMips + cloudletWaitingList.get(i).getRemainingCloudletLength();
-		}
-
-		long totalCloudletMips = totalExecutingCloudletMips + totalWaitingCloudletMips;
-
-		return totalCloudletMips; 	
+		return getTotalWaitingCloudletMips(vm) + getTotalExecutingCloudletMips(vm);
 	}
 
 	/**
@@ -116,9 +96,9 @@ public class DatacenterBrokerUtility {
 
 		long totalCloudletMips = 0;
 		for (int i = 0; i < lastVmIdList.size(); i++) {  /*  Loop for every vm id recorded. Note that the size of the list containing the last vm's id will be the same 
-		 												   size as the list containing the last cloudlet's mips and there is a one-to-one correspondence between them */
+													   size as the list containing the last cloudlet's mips and there is a one-to-one correspondence between them */
 			if (vm.getId() == lastVmIdList.get(i)) {	
-				totalCloudletMips = lastCloudletMipsList.get(i) + totalCloudletMips;
+				totalCloudletMips =  totalCloudletMips + lastCloudletMipsList.get(i);
 			}
 		}
 
@@ -179,7 +159,6 @@ public class DatacenterBrokerUtility {
 		return cloudletWaitListSize; 	
 	}
 
-
 	/**
 	 * Gets the number of cloudlets executing in a vm.
 	 * 
@@ -192,5 +171,4 @@ public class DatacenterBrokerUtility {
 
 		return cloudletExecListSize; 	
 	}
-
 }

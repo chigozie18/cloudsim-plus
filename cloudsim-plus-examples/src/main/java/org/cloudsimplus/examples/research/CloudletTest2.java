@@ -8,25 +8,16 @@ import java.util.stream.Stream;
 
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 
-import com.sun.tools.sjavac.comp.dependencies.PublicApiCollector;
-
 public class CloudletTest2 {
 
-
-
-
-
 	public static void main(String[] args) {
-
 		cloudletSubmissionDelaySortTest3();
-
-
 	}
 
 	public static void cloudletSubmissionDelaySortTest() {
 
-		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
-		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
+		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
+		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
 
 		List<Cloudlet> cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())
@@ -70,8 +61,8 @@ public class CloudletTest2 {
 	
 	public static void cloudletSubmissionDelaySortTest3() {
 
-		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
-		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
+		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
+		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
 
 		List<Cloudlet> cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())
