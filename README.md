@@ -19,15 +19,15 @@
 |
 <b><a href="#differences">Differences from CloudSim</a></b>
 |
-<b><a href="#7-general-features-of-the-framework">General Features</a></b>
+<b><a href="#general-features">General Features</a></b>
 |
-<b><a href="#8-cloudsim-plus-publications">Publications</a></b>
+<b><a href="#publications">Publications</a></b>
 |
-<b><a href="#9-related-projects">Related Projects</a></b>
+<b><a href="#projects">Related Projects</a></b>
 |
-<b><a href="#10-license">License</a></b>
+<b><a href="#license">License</a></b>
 |
-<b><a href="#11-contributing">Contributing</a></b>
+<b><a href="#contributing">Contributing</a></b>
 </p>
 
 
@@ -432,6 +432,8 @@ A complete and clear example was presented in the <a href="#a-minimal-and-comple
 
 <p align="right"><a href="#top">:arrow_up:</a></p>
 
+<a id="general-features"></a>
+
 # 7. General Features of the Framework
 
 CloudSim Plus supports modeling and simulation of:
@@ -454,24 +456,63 @@ CloudSim Plus supports modeling and simulation of:
   
 <p align="right"><a href="#top">:arrow_up:</a></p>
 
+<a id="projects"></a>
+
 # 9. Related Projects
 
 Here, it's presented a list of some projects based on CloudSim Plus, which trust in its accuracy, performance, maintainability and extensibility.
 If you want your project to be listed here, send us a Pull Request. Make sure your project has a descriptive README.
 
-- [PureEdgeSim: A simulation toolkit for performance evaluation of Fog and pure Edge computing environments.](https://github.com/CharafeddineMechalikh/PureEdgeSim)
-- [CloudSim Plus Py4j gateway: A py4j gateway for Cloud Sim Plus framework.](https://github.com/pkoperek/cloudsimplus-gateway)
-- [CloudSim Plus Automation: Human-Readable Scenario Specification for Automated Creation of Simulations on CloudSim and CloudSim Plus.](http://manoelcampos.github.io/cloudsim-plus-automation/)
+
+1. [PureEdgeSim: A simulation toolkit for performance evaluation of Fog and pure Edge computing environments.](https://github.com/CharafeddineMechalikh/PureEdgeSim)
+1. [CloudSim Plus Py4j gateway: building CloudSim Plus simulations in Python](https://github.com/pkoperek/cloudsimplus-gateway)
+1. [RECAP Discrete Event Simulation Framework an extension for CloudSimPlus](https://bitbucket.org/RECAP-DES/recap-des/src/master/)
+1. [CloudSim Plus Automation: defining CloudSim Plus simulation scenarios into a YAML file.](http://manoelcampos.github.io/cloudsim-plus-automation/)
+1. [LEAF: Simulator for modeling Large Energy-Aware Fog computing environments](https://github.com/birnbaum/LEAF)
 
 <p align="right"><a href="#top">:arrow_up:</a></p>
 
-# 10. License
+# 10. Contributors
+
+## Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/manoelcampos/cloudsim-plus/graphs/contributors"><img src="https://opencollective.com/cloudsim-plus/contributors.svg?width=890&button=false" /></a>
+
+## Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/cloudsim-plus/contribute)]
+
+### Individuals
+
+<a href="https://opencollective.com/cloudsim-plus"><img src="https://opencollective.com/cloudsim-plus/individuals.svg?width=890"></a>
+
+### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/cloudsim-plus/contribute)]
+
+<a href="https://opencollective.com/cloudsim-plus/organization/0/website"><img src="https://opencollective.com/cloudsim-plus/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/1/website"><img src="https://opencollective.com/cloudsim-plus/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/2/website"><img src="https://opencollective.com/cloudsim-plus/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/3/website"><img src="https://opencollective.com/cloudsim-plus/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/4/website"><img src="https://opencollective.com/cloudsim-plus/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/5/website"><img src="https://opencollective.com/cloudsim-plus/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/6/website"><img src="https://opencollective.com/cloudsim-plus/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/7/website"><img src="https://opencollective.com/cloudsim-plus/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/8/website"><img src="https://opencollective.com/cloudsim-plus/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/cloudsim-plus/organization/9/website"><img src="https://opencollective.com/cloudsim-plus/organization/9/avatar.svg"></a>
+
+<a id="license"></a>
+
+# 11. License
 
 This project is licensed under [GNU GPLv3](http://www.gnu.org/licenses/gpl-3.0), as defined inside CloudSim 3 source files.
 
 <p align="right"><a href="#top">:arrow_up:</a></p>
 
-# 11. Contributing
+<a id="contributing"></a>
+
+# 12. Contributing
 
 You are welcome to contribute to the project. 
 However, make sure you read the [contribution guide](CONTRIBUTING.md) before starting. 
