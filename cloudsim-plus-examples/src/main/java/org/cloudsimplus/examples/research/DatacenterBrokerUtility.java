@@ -171,4 +171,8 @@ public class DatacenterBrokerUtility {
 
 		return cloudletExecListSize; 	
 	}
+
+	public static void determineIfCloudletGoesToDC3(Cloudlet cloudlet, List<Datacenter> datacenterList) {
+		
+	}
 }

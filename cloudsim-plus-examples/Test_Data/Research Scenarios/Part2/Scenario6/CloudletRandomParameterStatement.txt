@@ -1,0 +1,2 @@
+CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1000, 0, 600, 1);
+CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1000, 0, 600, 2);

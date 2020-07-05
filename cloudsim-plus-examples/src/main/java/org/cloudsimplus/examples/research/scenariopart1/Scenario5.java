@@ -36,7 +36,7 @@ public class Scenario5 {
     private Datacenter datacenter0, datacenter1;
     private final List<Cloudlet> finishedCloudlets;
     private int cloudletTracker = 0; // keeps the index of a cloudlet (in a list) that last arrived dynamically
-    private String localDirectory = System.getProperty("user.dir");
+    private String workingDirectory = System.getProperty("user.dir");
 
     public static void main(String[] args) {
         new Scenario5();
@@ -47,20 +47,20 @@ public class Scenario5 {
 		simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
 		simulation.terminateAt(4000);
 		// Creates a list of hosts 
-		hostList = CloudCreator.createHostsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter1_Hosts.csv");
-		hostList2 = CloudCreator.createHostsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter2_Hosts.csv");
+		hostList = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter1_Hosts.csv");
+		hostList2 = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter2_Hosts.csv");
 
 		datacenter0 = CloudCreator.createDatacenter(simulation, hostList, 1);  // creates a datacenter and it's hosts      
 		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts      
 
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-		broker0 = new DatacenterBrokerWorstCustomFit(simulation); 
+		broker0 = new DatacenterBrokerBestCustomFit(simulation); 
 
-		vmList = CloudCreator.createVmsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter1_Vms.csv");		      
-		vmList2 = CloudCreator.createVmsFromFile(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter2_Vms.csv");		      
+		vmList = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter1_Vms.csv");		      
+		vmList2 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter2_Vms.csv");		      
 
-		cloudletList = CloudCreator.createCloudletsFromFile2(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter1_Cloudlets.csv");
-		cloudletList2 = CloudCreator.createCloudletsFromFile2(localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter2_Cloudlets.csv");
+		cloudletList = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter1_Cloudlets.csv");
+		cloudletList2 = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario5/Datacenter2_Cloudlets.csv");
 
 		cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())

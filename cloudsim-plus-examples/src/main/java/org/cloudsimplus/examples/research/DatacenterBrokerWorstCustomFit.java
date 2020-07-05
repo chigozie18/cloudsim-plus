@@ -157,9 +157,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 				// keep track of the id of a mapped vm (a vm with the most remaining work in this case)
 				lastVmIdDC1 = mappedVm.getId(); 
 				System.out.println("A free Vm was found");
-				System.out.println("Mapped Vms free PEs is:" + mappedVm.getFreePesNumber());
 				System.out.println("The total waiting cloudlet mips is: "
-				// note these three lines should print 0 unless something is wrong
 						+ DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm)); 
 				System.out.println("The total executing cloudlet mips is: "
 						+ DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
@@ -177,8 +175,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 				 * most remaining work.
 				 */
 				if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
-					System.out.println(
-							"Subsequent cloudlet arriving at the same time. No free vm was found so one with the most remaining work was chosen.");
+					System.out.println("No free vm was found so one with the most remaining work was chosen.");
 
 					for (int i = 0; i < datacenterVmList.size(); i++) {
 						System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
@@ -249,7 +246,6 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 			if (mappedVm != Vm.NULL) { // if there is a free vm
 				lastVmIdDC2 = mappedVm.getId();
 				System.out.println("A free Vm was found");
-				System.out.println("Mapped Vms free PEs is:" + mappedVm.getFreePesNumber());
 				System.out.println("The total waiting cloudlet mips is: "
 						+ DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
 				System.out.println("The total executing cloudlet mips is: "
@@ -264,8 +260,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 				if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
 
-					System.out.println(
-							"Subsequent cloudlet arriving at the same time. No free vm was found so one with the most remaining work was chosen.");
+					System.out.println("No free vm was found so one with the most remaining work was chosen.");
 
 					for (int i = 0; i < datacenterVmList.size(); i++) {
 						System.out.println(

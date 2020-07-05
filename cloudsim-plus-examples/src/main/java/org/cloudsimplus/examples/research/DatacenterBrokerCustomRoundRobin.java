@@ -168,9 +168,7 @@ public class DatacenterBrokerCustomRoundRobin extends DatacenterBrokerSimple {
             if (mappedVm != Vm.NULL) { // if there is a free vm
                 lastVmIdDC1 = mappedVm.getId(); // keep track of the id of a mapped vm
                 System.out.println("A free Vm was found");
-                System.out.println("Mapped Vms free PEs is:" + mappedVm.getFreePesNumber());
                 System.out.println("The total waiting cloudlet mips is: "
-                        // note these three lines should print 0 unless something is wrong
                         + DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
                 System.out.println("The total executing cloudlet mips is: "
                         + DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
@@ -229,9 +227,7 @@ public class DatacenterBrokerCustomRoundRobin extends DatacenterBrokerSimple {
             if (mappedVm != Vm.NULL) { // if there is a free vm
                 lastVmIdDC2 = mappedVm.getId(); // keep track of the id of a mapped vm
                 System.out.println("A free Vm was found");
-                System.out.println("Mapped Vms free PEs is:" + mappedVm.getFreePesNumber());
                 System.out.println("The total waiting cloudlet mips is: "
-                        // note these three lines should print 0 unless something is wrong
                         + DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
                 System.out.println("The total executing cloudlet mips is: "
                         + DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
