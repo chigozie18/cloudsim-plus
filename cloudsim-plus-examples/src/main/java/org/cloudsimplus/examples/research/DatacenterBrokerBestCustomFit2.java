@@ -14,13 +14,22 @@ import org.cloudbus.cloudsim.vms.Vm;
 
 /**
  * An implementation of {@link DatacenterBroker} that uses a custom and optimal
- * mapping between submitted cloudlets and vms. It maps an incoming cloudlet to
- * the vm that can execute the cloudlet the fastest (vm with the least remaining
- * work). The vm with the least remaining work is the one with smallest amount
+ * mapping between submitted cloudlets and vms. First, it selects the datacenter 
+ * with the least remaining work between either datacenter 1/2 or datacenter 3.
+ * The datacenter with the least remaining work is the datacenter with the smallest amount 
  * of cloudlet mips (remaining length of running cloudlets + length of waiting
- * cloudlets) on the vm. This policy also tries to map incoming cloudlets to any
- * free vms first before finding the vm with the least remaining work. It simply
- * selects the first free vm available when possible (will go in order).
+ * cloudlets), which is the sum of all cloudlet mips from all the vms in the datacenter. 
+ * 
+ * <br><br>
+ * It then maps an incoming cloudlet to the vm in the selected datacenter that can execute 
+ * the cloudlet the fastest (vm with the least remaining work). The vm with the least 
+ * remaining work, is the one with the smallest amount of cloudlet mips 
+ * (remaining length of running cloudlets + length of waiting cloudlets). 
+ * This policy also tries to select datacenter 1/2 (to have one of it's vms exectue a cloudlet) 
+ * first if it's free (has at least one free vm) or selects datacenter 3 afterwards if it's free 
+ * before selecting the datacenter with the least remaining work. It will then try to map a 
+ * cloudlet to a free vm in that selected datacenter before finding the vm with the least remaining work. 
+ * It simply selects the first free vm available when possible (will go in order).
  *
  * @author Chigozie Asikaburu
  * @since CloudSim Plus 4.6.0
@@ -42,6 +51,7 @@ public class DatacenterBrokerBestCustomFit2 extends DatacenterBrokerSimple {
      * from the current simulation time when the last cloudlet arrived.
      */
     double lastCloudletArrivalTimeDC3 = -2;
+
     /**
      * Stores the last vm's id used to map a cloudlet in datacenter 1. It's
      * initially set to -2 instead of 0 to make sure that the first cloudlet is
@@ -106,22 +116,64 @@ public class DatacenterBrokerBestCustomFit2 extends DatacenterBrokerSimple {
      */
     List<Long> lastVmIdListDC3 = new ArrayList<Long>(Arrays.asList((long) -2));
 
+     /**
+     * Stores the last vm's id in a list in the event that subsequent cloudlets
+     * arrive at the same time. It will store them until a subsequent cloudlet
+     * arrives at a different time. This is done to make sure that many subsequent
+     * cloudlets arriving at the same time don't get mapped to the same vm. If a
+     * variable was used to remember the last vm id it may eventaully cycle back to
+     * a vm which it thought was free (because the variable was changed) but is no
+     * longer free since it has work. So a list of vm ids is used instead of just a
+     * variable. The list is cleared once a subsequent cloudlet arrives at a
+     * different time.
+     */
+    List<List<Long>> lastVmIdListAllDC = new ArrayList<List<Long>>
+    (Arrays.asList(lastVmIdListDC1,lastVmIdListDC2, lastVmIdListDC3));
+
+    /**
+     * Stores the mips of the last cloudlet that arrived in datacenter 1.
+     */
     long lastCloudletMipsDC1 = -2;
 
+    /**
+     * Stores the mips of the last cloudlet that arrived in datacenter 2.
+     */
     long lastCloudletMipsDC2 = -2;
 
+    /**
+     * Stores the mips of the last cloudlet that arrived in datacenter 3.
+     */
     long lastCloudletMipsDC3 = -2;
 
-
+    /**
+     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
+     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
+     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
+     * the same time as previous cloudlets).
+     */
     List<Long> lastCloudletMipsListDC1 = new ArrayList<Long>(Arrays.asList((long) -2));
 
+    /**
+     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
+     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
+     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
+     * the same time as previous cloudlets).
+     */
     List<Long> lastCloudletMipsListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
 
+    /**
+     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
+     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
+     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
+     * the same time as previous cloudlets).
+     */
     List<Long> lastCloudletMipsListDC3 = new ArrayList<Long>(Arrays.asList((long) -2));
 
-    /**  Used to indicate whether a cloudlet is meant to be executed in datacenter 3. 
-     *   If false a cloudlet will be executed in either datacenter 1 or 2.*/
-    boolean forDC3 = false;
+     /**
+     * Represents a list of lists containing lists from all datacenter's lastCloudletMipsList. 
+     */
+    List<List<Long>> lastCloudletMipsListAllDC = new ArrayList<List<Long>>
+    (Arrays.asList(lastCloudletMipsListDC1, lastCloudletMipsListDC2, lastCloudletMipsListDC3));
 
     /**
      * Creates a DatacenterBroker object.
@@ -156,13 +208,35 @@ public class DatacenterBrokerBestCustomFit2 extends DatacenterBrokerSimple {
 
 		Vm mappedVm = Vm.NULL;
 
-		System.out.println("*********CLOUDLET JOB IS: " + cloudlet.getJobId());
+		/*
+     	* Stores the last cloudlet's arrival time in all datacenters. This value is gotten
+     	* from the current simulation time when the last cloudlet arrived.
+     	*/
+		List<Double> lastCloudletArrivalTimeAllDC = new ArrayList<Double>(Arrays.asList(lastCloudletArrivalTimeDC1,
+		lastCloudletArrivalTimeDC2, lastCloudletArrivalTimeDC3));
+	
+		long oldCloudletJobId = cloudlet.getJobId();
 
-		if (cloudlet.getJobId() == 1 && forDC3 == false) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
+		DatacenterBrokerUtility.determineIfCloudletGoesToDC3BestFit(Double.parseDouble(getSimulation().clockStr()), 
+		cloudlet, lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, getDatacenterList());
+		
+		DatacenterBrokerUtility.printCloudletJobIdMessage(oldCloudletJobId, cloudlet.getJobId());
+
+		DatacenterBrokerUtility.printTotalCloudletMipsInAllDC(Double.parseDouble(getSimulation().clockStr()),
+		lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, getDatacenterList());
+		
+		DatacenterBrokerUtility.printTotalCloudletMipsInAllVmsInAllDC(Double.parseDouble(getSimulation().clockStr()),
+		lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, getDatacenterList());
+
+		DatacenterBrokerUtility.printNumOfExecutingCloudletsInAllDC(getDatacenterList());
+
+		DatacenterBrokerUtility.printSelectedDC(cloudlet.getJobId());
+
+		if (cloudlet.getJobId() == 1) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
 			Datacenter datacenter = getDatacenterList().get(0);
 
 			List<Vm> datacenterVmList = DatacenterBrokerUtility.getVmList(datacenter);
-
+			
 			/*
 			 * If subsequent cloudlets arrive at the same time then make sure it doesn't get
 			 * mapped to the last vm "free vm" used. This is done so we don't assign
@@ -245,7 +319,7 @@ public class DatacenterBrokerBestCustomFit2 extends DatacenterBrokerSimple {
 			lastVmIdListDC1.add(lastVmIdDC1);
 		}
 
-		if (cloudlet.getJobId() == 2 && forDC3 == false) { // if the cloudlet's job id is 2 it will be executed in a vm in datacenter 2
+		if (cloudlet.getJobId() == 2) { // if the cloudlet's job id is 2 it will be executed in a vm in datacenter 2
 			Datacenter datacenter = getDatacenterList().get(1);
 
 			List<Vm> datacenterVmList = DatacenterBrokerUtility.getVmList(datacenter);
@@ -348,7 +422,7 @@ public class DatacenterBrokerBestCustomFit2 extends DatacenterBrokerSimple {
         }
         
          // a cloudlet will be executed in datacenter 3 if it can be executed faster in datacenter 3 than in datacenter 1/2.
-        if (forDC3 == true) {
+        if (cloudlet.getJobId() == 3) {
 			Datacenter datacenter = getDatacenterList().get(2);
 
 			List<Vm> datacenterVmList = DatacenterBrokerUtility.getVmList(datacenter);

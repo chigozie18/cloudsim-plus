@@ -16,9 +16,9 @@ import org.cloudbus.cloudsim.vms.Vm;
  * An implementation of {@link DatacenterBroker} that uses a custom and non-optimal
  * mapping between submitted cloudlets and vms. It maps an incoming cloudlet to
  * the vm that can execute the cloudlet the slowest (vm with the most remaining
- * work). The vm with the most remaining work is the one with largest amount
+ * work). The vm with the most remaining work, is the one with largest amount
  * of cloudlet mips (remaining length of running cloudlets + length of waiting
- * cloudlets) on the vm. This policy also tries to map incoming cloudlets to any
+ * cloudlets). This policy also tries to map incoming cloudlets to any
  * free vms first before finding the vm with the most remaining work. It simply
  * selects the first free vm available when possible (will go in order).
  *
@@ -84,8 +84,20 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 	long lastCloudletMipsDC2 = -2;
 
+	 /**
+     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
+     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
+     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
+     * the same time as previous cloudlets).
+     */
 	List<Long> lastCloudletMipsListDC1 = new ArrayList<Long>(Arrays.asList((long) -2));
 
+	 /**
+     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
+     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
+     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
+     * the same time as previous cloudlets).
+     */
 	List<Long> lastCloudletMipsListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
 
 	/**

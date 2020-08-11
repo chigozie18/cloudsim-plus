@@ -106,47 +106,25 @@ public class CloudletTimeCalculator {
   }
 
   /**
-   * Gets the average turnaround time of cloudlets with a job id of 1.
+   * Gets the average turnaround time of cloudlets that match a job id. 
    * 
+   * @param jobId the id of the cloudlets to find the average turnaround time 
    * @param jobIdList the list of cloudlets that finished execution
    * @return the average turnaround time of the given cloudlets
    */
-  public static BigDecimal getAverageTurnaroundTimeForJobId1(List<Cloudlet> finishedCloudlets) {
+  public static BigDecimal getAverageTurnaroundTimeForJobId(long jobId, List<Cloudlet> finishedCloudlets) {
     BigDecimal averageTurnaroundTime = BigDecimal.valueOf(0);
 
-    List<Cloudlet> jobId1List = finishedCloudlets.stream().filter(cloudlet -> cloudlet.getJobId() == 1).collect(Collectors.toList());
+    List<Cloudlet> jobIdList = finishedCloudlets.stream().filter(cloudlet -> cloudlet.getJobId() == jobId).collect(Collectors.toList());
 
-    int jobId1CloudletLength = jobId1List.size();
+    int jobIdCloudletLength = jobIdList.size();
 
-    for (int i = 0; i < jobId1CloudletLength; i++) {
-      averageTurnaroundTime = averageTurnaroundTime.add((BigDecimal.valueOf(jobId1List.get(i).getFinishTime())
-      .subtract(BigDecimal.valueOf(jobId1List.get(i).getLastDatacenterArrivalTime()))));
+    for (int i = 0; i < jobIdCloudletLength; i++) {
+      averageTurnaroundTime = averageTurnaroundTime.add((BigDecimal.valueOf(jobIdList.get(i).getFinishTime())
+      .subtract(BigDecimal.valueOf(jobIdList.get(i).getLastDatacenterArrivalTime()))));
     }
 
-    averageTurnaroundTime = averageTurnaroundTime.divide(BigDecimal.valueOf(jobId1CloudletLength), 2, RoundingMode.HALF_UP); // gets the average by dividing by number of
-                                                                          // finshed cloudlets in the list
-    return averageTurnaroundTime;
-  }
-
-   /**
-   * Gets the average turnaround time of cloudlets with a job id of 2.
-   * 
-   * @param jobIdList the list of cloudlets that finished execution
-   * @return the average turnaround time of the given cloudlets
-   */
-  public static BigDecimal getAverageTurnaroundTimeForJobId2(List<Cloudlet> finishedCloudlets) {
-    BigDecimal averageTurnaroundTime = BigDecimal.valueOf(0);
-
-    List<Cloudlet> jobId2List = finishedCloudlets.stream().filter(cloudlet -> cloudlet.getJobId() == 2).collect(Collectors.toList());
-
-    int jobId2CloudletLength = jobId2List.size();
-
-    for (int i = 0; i < jobId2CloudletLength; i++) {
-      averageTurnaroundTime = averageTurnaroundTime.add((BigDecimal.valueOf(jobId2List.get(i).getFinishTime())
-      .subtract(BigDecimal.valueOf(jobId2List.get(i).getLastDatacenterArrivalTime()))));
-    }
-
-    averageTurnaroundTime = averageTurnaroundTime.divide(BigDecimal.valueOf(jobId2CloudletLength), 2, RoundingMode.HALF_UP);  // gets the average by dividing by number of
+    averageTurnaroundTime = averageTurnaroundTime.divide(BigDecimal.valueOf(jobIdCloudletLength), 2, RoundingMode.HALF_UP); // gets the average by dividing by number of
                                                                           // finshed cloudlets in the list
     return averageTurnaroundTime;
   }

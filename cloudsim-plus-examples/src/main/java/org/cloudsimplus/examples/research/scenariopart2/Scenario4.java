@@ -1,4 +1,4 @@
-package org.cloudsimplus.examples.research.scenariopart1;
+package org.cloudsimplus.examples.research.scenariopart2;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,9 +15,7 @@ import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 import org.cloudsimplus.examples.research.CloudCreator;
 import org.cloudsimplus.examples.research.CloudResults;
-import org.cloudsimplus.examples.research.DatacenterBrokerCustomRoundRobin;
-import org.cloudsimplus.examples.research.DatacenterBrokerBestCustomFit;
-import org.cloudsimplus.examples.research.DatacenterBrokerWorstCustomFit;
+import org.cloudsimplus.examples.research.DatacenterBrokerBestCustomFit2;
 import org.cloudsimplus.listeners.EventInfo;
 
 /**
@@ -26,52 +24,56 @@ import org.cloudsimplus.listeners.EventInfo;
  * @author Chigozie Asikaburu
  *
  */
-public class Scenario1 {
+public class Scenario4 {
 
 	private final CloudSim simulation;
 	private DatacenterBroker broker0;
-	private List<Vm> vmList, vmList2, vmList3;
+	private List<Vm> vmList, vmList2, vmList3, vmList4;
 	private List<Cloudlet> cloudletList, cloudletList2, cloudletList3;
-	private List<Host> hostList, hostList2;
-	private Datacenter datacenter0, datacenter1;
+	private List<Host> hostList, hostList2, hostList3;
+	private Datacenter datacenter0, datacenter1, datacenter2;
 	private final List<Cloudlet> finishedCloudlets;
-	private int cloudletTracker = 0;  // keeps the index of a cloudlet (in a list) that last arrived dynamically
+	private int cloudletTracker = 0; // keeps the index of a cloudlet (in a list) that last arrived dynamically
 	private String workingDirectory = System.getProperty("user.dir");
-	public static void main(String[] args) {
-		new Scenario1(); 
-	} 
 
-	private Scenario1() {
+	public static void main(String[] args) {
+		new Scenario4();
+	}
+
+	private Scenario4() {
 
 		simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
 		simulation.terminateAt(4000);
 		// Creates a list of hosts 
-		hostList = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter1_Hosts.csv");
-		hostList2 = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Hosts.csv");
+		hostList = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter1_Hosts.csv");
+		hostList2 = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter2_Hosts.csv");
+		hostList3 = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter3_Hosts.csv");
 
 		datacenter0 = CloudCreator.createDatacenter(simulation, hostList, 1);  // creates a datacenter and it's hosts      
-		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts      
+		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts  
+		datacenter2 = CloudCreator.createDatacenter(simulation, hostList3, 1);  // creates a datacenter and it's hosts      
 
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-		broker0 = new DatacenterBrokerBestCustomFit(simulation); 
+		broker0 = new DatacenterBrokerBestCustomFit2(simulation); 
 
-		vmList = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter1_Vms.csv");		      
-		vmList2 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Vms.csv");		      
+		vmList = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter1_Vms.csv");		      
+		vmList2 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter2_Vms.csv");		
+		vmList3 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter3_Vms.csv");		      
 
-		cloudletList = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter1_Cloudlets.csv");
-		cloudletList2 = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Cloudlets.csv");
-
+		cloudletList = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter1_Cloudlets.csv");
+		cloudletList2 = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario4/Datacenter2_Cloudlets.csv");
+		
 		cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())
 				.collect(Collectors.toList());  // creates a combined VM list to be submitted to the broker 
 
 		Collections.sort(cloudletList3, Comparator.comparingDouble(Cloudlet::getSubmissionDelay));  // sorts cloudlets based on their arrival (from earliest to latestest)
 
-		vmList3 = Stream.of(vmList, vmList2)
+		vmList4 = Stream.of(vmList, vmList2, vmList3)
 				.flatMap(x -> x.stream())
 				.collect(Collectors.toList());
 
-		broker0.submitVmList(vmList3); 
+		broker0.submitVmList(vmList4); 
 
 		simulation.addOnClockTickListener(this::clockTickListener);
 
@@ -80,7 +82,7 @@ public class Scenario1 {
 		finishedCloudlets = broker0.getCloudletFinishedList();
 
 		CloudResults.printExtraResults2(finishedCloudlets); 
-		CloudResults.printAverageTurnaroundTimeJobId(finishedCloudlets);
+		CloudResults.printAverageTurnaroundTimeAllJobId(finishedCloudlets);
 		CloudResults.printAllArrivalTimesWithJobID(finishedCloudlets);
 		new CloudletsTableBuilder(finishedCloudlets).build();  
 	}

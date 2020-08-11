@@ -27,7 +27,6 @@ public class CloudResults {
 	 * out the arrival times and submission delays for all cloudlets. It also prints
 	 * out the arrival times and submission delays of all cloudlets.
 	 * 
-	 * @param datacenter        the datacenter that the finished cloudlets ran on
 	 * @param finishedCloudlets the list of all finished cloudlets
 	 */
 	public static void printExtraResults(List<Cloudlet> finishedCloudlets) {
@@ -116,17 +115,14 @@ public class CloudResults {
 	}
 
 	/**
-	 * Prints out the average arrival time of all cloudlets that have finished
-	 * executing.
+	 * Prints out the average turnaround time of all cloudlets with a job id of 1 or 2.
 	 * 
 	 * @param finishedCloudlets the list of all finished cloudlets
 	 */
-
 	public static void printAverageTurnaroundTimeJobId(List<Cloudlet> finishedCloudlets) {
-		BigDecimal averageTurnaroundTimeJobId1 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId1(
-				finishedCloudlets);
+		BigDecimal averageTurnaroundTimeJobId1 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId(1,finishedCloudlets);
 		averageTurnaroundTimeJobId1.setScale(2, RoundingMode.HALF_UP);
-		BigDecimal averageTurnaroundTimeJobId2 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId2(finishedCloudlets);
+		BigDecimal averageTurnaroundTimeJobId2 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId(2, finishedCloudlets);
 		averageTurnaroundTimeJobId2.setScale(2, RoundingMode.HALF_UP);
 		System.out.println("\n");
 		System.out.println("************* Average Turnaround Time (Job ID 1) *************");
@@ -137,6 +133,35 @@ public class CloudResults {
 		System.out.println("\n");
 		System.out.println("************* Average Turnaround Time (Job ID 2) *************");
 		System.out.println("\nThe average turnaround time was: " + averageTurnaroundTimeJobId2);
+		System.out.println("\n");
+	}
+
+	/**
+	 * Prints out the average turnaround time of all cloudlets with a job id of 1, 2 or 3.
+	 * 
+	 * @param finishedCloudlets the list of all finished cloudlets
+	 */
+	public static void printAverageTurnaroundTimeAllJobId(List<Cloudlet> finishedCloudlets) {
+		BigDecimal averageTurnaroundTimeJobId1 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId(1, finishedCloudlets);
+		averageTurnaroundTimeJobId1.setScale(2, RoundingMode.HALF_UP);
+		BigDecimal averageTurnaroundTimeJobId2 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId(2, finishedCloudlets);
+		averageTurnaroundTimeJobId2.setScale(2, RoundingMode.HALF_UP);
+		BigDecimal averageTurnaroundTimeJobId3 = CloudletTimeCalculator.getAverageTurnaroundTimeForJobId(3, finishedCloudlets);
+		averageTurnaroundTimeJobId3.setScale(2, RoundingMode.HALF_UP);
+		System.out.println("\n");
+		System.out.println("************* Average Turnaround Time (Job ID 1) *************");
+
+		System.out.println("\nThe average turnaround time was: " + averageTurnaroundTimeJobId1);
+		System.out.println("\n");
+
+		System.out.println("\n");
+		System.out.println("************* Average Turnaround Time (Job ID 2) *************");
+		System.out.println("\nThe average turnaround time was: " + averageTurnaroundTimeJobId2);
+		System.out.println("\n");
+
+		System.out.println("\n");
+		System.out.println("************* Average Turnaround Time (Job ID 3) *************");
+		System.out.println("\nThe average turnaround time was: " + averageTurnaroundTimeJobId3);
 		System.out.println("\n");
 	}
 
