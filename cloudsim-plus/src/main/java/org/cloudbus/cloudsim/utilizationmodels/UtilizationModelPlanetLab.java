@@ -129,7 +129,7 @@ public class UtilizationModelPlanetLab extends UtilizationModelAbstract {
      * That Function is useful when you don't want to use the values from the trace as they are,
      * but you want to scale the values applying any mathematical operation over them.
      * For instance, you can provide a mapper Function that scale the values in 10 times,
-     * by giving a Lambda Expression such as {@code setMapper(value -> value * 10)}.
+     * by giving a Lambda Expression such as {@code value -> value * 10}.
      *
      * <p>If a mapper Function is not set, the values are used as read from the trace file,
      * without any change (except that the scale is always converted to [0..1]).</p>
@@ -185,7 +185,7 @@ public class UtilizationModelPlanetLab extends UtilizationModelAbstract {
      * That Function is useful when you don't want to use the values from the trace as they are,
      * but you want to scale the values applying any mathematical operation over them.
      * For instance, you can provide a mapper Function that scale the values in 10 times,
-     * by giving a Lambda Expression such as {@code setMapper(value -> value * 10)}.
+     * by giving a Lambda Expression such as {@code value -> value * 10}.
      *
      * <p>If a mapper Function is not set, the values are used as read from the trace file,
      * without any change (except that the scale is always converted to [0..1]).</p>
@@ -276,7 +276,7 @@ public class UtilizationModelPlanetLab extends UtilizationModelAbstract {
                 }
 
                 if(!isComment(line)) {
-                    utilization[lineNum++] = Math.min(mapper.apply(Double.parseDouble(line) / 100.0), 1.0);
+                    utilization[lineNum++] = mapper.apply(Double.parseDouble(line) / 100.0);
                 }
             }
         } catch (IOException e) {
@@ -329,7 +329,7 @@ public class UtilizationModelPlanetLab extends UtilizationModelAbstract {
     }
 
     @Override
-    public double getUtilization(final double time) {
+    protected double getUtilizationInternal(final double time) {
         //If the time requested is multiple of the scheduling interval, gets a precise value from the trace file
         if (Math.round(time) % getSchedulingInterval() == 0) {
             return utilization[(int) getUtilizationIndex(time)];

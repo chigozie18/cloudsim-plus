@@ -10,6 +10,7 @@ import org.cloudbus.cloudsim.resources.ResourceManageable;
 import org.cloudbus.cloudsim.schedulers.vm.VmScheduler;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudsimplus.listeners.EventListener;
+import org.cloudsimplus.listeners.HostEventInfo;
 import org.cloudsimplus.listeners.HostUpdatesVmsProcessingEventInfo;
 
 import java.util.*;
@@ -87,7 +88,8 @@ final class HostNull implements Host {
     @Override public Host setVmScheduler(VmScheduler vmScheduler) {
         return Host.NULL;
     }
-    @Override public double getStartTime() { return 0; }
+    @Override public double getStartTime() { return -1; }
+    @Override public double getFirstStartTime() { return -1; }
     @Override public void setStartTime(double startTime) {/**/}
     @Override public double getShutdownTime() { return 0; }
     @Override public boolean isFailed() {
@@ -115,6 +117,10 @@ final class HostNull implements Host {
     @Override public void destroyTemporaryVm(Vm vm) {/**/}
     @Override public void destroyVm(Vm vm) {/**/}
     @Override public void destroyAllVms() {/**/}
+    @Override public Host addOnStartupListener(EventListener<HostEventInfo> listener) { return this; }
+    @Override public boolean removeOnStartupListener(EventListener<HostEventInfo> listener) { return false; }
+    @Override public Host addOnShutdownListener(EventListener<HostEventInfo> listener) { return this; }
+    @Override public boolean removeOnShutdownListener(EventListener<HostEventInfo> listener) { return false; }
     @Override public boolean removeOnUpdateProcessingListener(EventListener<HostUpdatesVmsProcessingEventInfo> listener) { return false; }
     @Override public Host addOnUpdateProcessingListener(EventListener<HostUpdatesVmsProcessingEventInfo> listener) { return Host.NULL; }
     @Override public long getAvailableStorage() {

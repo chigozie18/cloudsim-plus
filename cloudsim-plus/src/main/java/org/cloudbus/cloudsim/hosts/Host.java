@@ -21,6 +21,7 @@ import org.cloudbus.cloudsim.schedulers.vm.VmScheduler;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudbus.cloudsim.vms.VmUtilizationHistory;
 import org.cloudsimplus.listeners.EventListener;
+import org.cloudsimplus.listeners.HostEventInfo;
 import org.cloudsimplus.listeners.HostUpdatesVmsProcessingEventInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -316,9 +317,18 @@ public interface Host extends Machine, Comparable<Host> {
     /**
      * Gets the last time the Host was powered-on (in seconds).
      * @return the last Host startup time or -1 if the Host has never been powered on
+     * @see #getFirstStartTime()
      * @see #setActive(boolean)
      */
     double getStartTime();
+
+    /**
+     * Gets the first time the Host was powered-on (in seconds).
+     * @return the first Host startup time or -1 if the Host has never been powered on
+     * @see #getStartTime()
+     * @see #setActive(boolean)
+     */
+    double getFirstStartTime();
 
     /**
      * Sets the Host start up time (the time it's being powered on).
@@ -484,7 +494,39 @@ public interface Host extends Machine, Comparable<Host> {
     void destroyAllVms();
 
     /**
-     * Adds a listener object that will be notified every time when
+     * Adds a listener object that will be notified every time
+     * the host is <b>powered on</b>.
+     *
+     * @param listener the Listener to add
+     * @return
+     */
+    Host addOnStartupListener(EventListener<HostEventInfo> listener);
+
+    /**
+     * Removes a Listener object from the registered List.
+     * @param listener the Listener to remove
+     * @return true if the Listener was removed, false otherwise
+     */
+    boolean removeOnStartupListener(EventListener<HostEventInfo> listener);
+
+    /**
+     * Adds a listener object that will be notified every time
+     * the host is <b>powered off</b>.
+     *
+     * @param listener the Listener to add
+     * @return
+     */
+    Host addOnShutdownListener(EventListener<HostEventInfo> listener);
+
+    /**
+     * Removes a Listener object from the registered List.
+     * @param listener the Listener to remove
+     * @return true if the Listener was removed, false otherwise
+     */
+    boolean removeOnShutdownListener(EventListener<HostEventInfo> listener);
+
+    /**
+     * Adds a listener object that will be notified every time
      * the host updates the processing of all its {@link Vm VMs}.
      *
      * @param listener the OnUpdateProcessingListener to add
@@ -494,7 +536,7 @@ public interface Host extends Machine, Comparable<Host> {
     Host addOnUpdateProcessingListener(EventListener<HostUpdatesVmsProcessingEventInfo> listener);
 
     /**
-     * Removes a listener object from the OnUpdateProcessingListener List.
+     * Removes a Listener object from the registered List.
      *
      * @param listener the listener to remove
      * @return true if the listener was found and removed, false otherwise
@@ -581,8 +623,8 @@ public interface Host extends Machine, Comparable<Host> {
     SortedMap<Double, DoubleSummaryStatistics> getUtilizationHistory();
 
     /**
-     * <p>Gets a map containing the host CPU utilization percentage history (between [0 and 1]),
-     * based on its VM utilization history.
+     * <p>Gets a map containing the total Host's CPU utilization (between [0 and 1])
+     * along simulation time, based on its VM utilization history.
      * Each key is a time when the data collection was performed
      * and each value is the sum of all CPU utilization of the VMs running inside this Host for that time.
      * This way, the value represents the total Host's CPU utilization for each time
@@ -601,9 +643,7 @@ public interface Host extends Machine, Comparable<Host> {
      * </p>
      *
      * @return a Map where keys are the data collection time
-     * and each value is a {@link DoubleSummaryStatistics} objects
-     * that provides lots of useful methods to get
-     * max, min, average, count and sum of utilization values.
+     * and each value is the total Host's CPU utilization for each time.
      *
      * @see #getUtilizationHistory()
      */

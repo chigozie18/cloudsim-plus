@@ -21,10 +21,10 @@ final class UtilizationModelNull implements UtilizationModel {
     @Override public UtilizationModel setSimulation(final Simulation simulation) {
         return this;
     }
-    @Override public double getUtilization(final double time) {
-        return 0;
-    }
+    @Override public double getUtilization(final double time) { return 0; }
     @Override public double getUtilization() {
         return 0;
     }
+    @Override public boolean isOverCapacityRequestAllowed() { return false; }
+    @Override public UtilizationModel setOverCapacityRequestAllowed(boolean allow) { return this; }
 }
