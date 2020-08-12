@@ -16,6 +16,7 @@ import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 import org.cloudsimplus.examples.research.CloudCreator;
 import org.cloudsimplus.examples.research.CloudResults;
 import org.cloudsimplus.examples.research.DatacenterBrokerBestCustomFit2;
+import org.cloudsimplus.examples.research.DatacenterBrokerCustomRoundRobin2;
 import org.cloudsimplus.listeners.EventInfo;
 
 /**
@@ -54,7 +55,7 @@ public class Scenario2 {
 		datacenter2 = CloudCreator.createDatacenter(simulation, hostList3, 1);  // creates a datacenter and it's hosts      
 
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-		broker0 = new DatacenterBrokerBestCustomFit2(simulation); 
+		broker0 = new DatacenterBrokerCustomRoundRobin2(simulation); 
 
 		vmList = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario2/Datacenter1_Vms.csv");		      
 		vmList2 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part2/Scenario2/Datacenter2_Vms.csv");		

@@ -32,11 +32,13 @@ public class DatacenterBrokerBestCustomFit extends DatacenterBrokerSimple {
 	 * from the current simulation time when the last cloudlet arrived.
 	 */
 	double lastCloudletArrivalTimeDC1 = -2;
+	
 	/**
 	 * Stores the last cloudlet's arrival time in datacenter 2. This value is gotten
 	 * from the current simulation time when the last cloudlet arrived.
 	 */
 	double lastCloudletArrivalTimeDC2 = -2;
+	
 	/**
 	 * Stores the last vm's id used to map a cloudlet in datacenter 1. It's
 	 * initially set to -2 instead of 0 to make sure that the first cloudlet is
@@ -45,6 +47,7 @@ public class DatacenterBrokerBestCustomFit extends DatacenterBrokerSimple {
 	 * CloudSim.
 	 */
 	long lastVmIdDC1 = -2;
+
 	/**
 	 * Stores the last vm's id used to map a cloudlet in datacenter 2. It's
 	 * initially set to -2 instead of 0 to make sure that the first cloudlet is
