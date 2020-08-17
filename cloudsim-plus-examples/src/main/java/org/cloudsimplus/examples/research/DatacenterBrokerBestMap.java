@@ -13,30 +13,32 @@ import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.vms.Vm;
 
 /**
- * An implementation of {@link DatacenterBroker} that uses a custom and non-optimal
+ * An implementation of {@link DatacenterBroker} that uses a best
  * mapping between submitted cloudlets and vms. It maps an incoming cloudlet to
- * the vm that can execute the cloudlet the slowest (vm with the most remaining
- * work). The vm with the most remaining work, is the one with largest amount
+ * the vm that can execute the cloudlet the fastest (vm with the least remaining
+ * work). The vm with the least remaining work, is the one with smallest amount
  * of cloudlet mips (remaining length of running cloudlets + length of waiting
  * cloudlets). This policy also tries to map incoming cloudlets to any
- * free vms first before finding the vm with the most remaining work. It simply
+ * free vms first before finding the vm with the least remaining work. It simply
  * selects the first free vm available when possible (will go in order).
  *
  * @author Chigozie Asikaburu
  * @since CloudSim Plus 4.6.0
  */
-public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
+public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 
 	/**
 	 * Stores the last cloudlet's arrival time in datacenter 1. This value is gotten
 	 * from the current simulation time when the last cloudlet arrived.
 	 */
 	double lastCloudletArrivalTimeDC1 = -2;
+
 	/**
 	 * Stores the last cloudlet's arrival time in datacenter 2. This value is gotten
 	 * from the current simulation time when the last cloudlet arrived.
 	 */
 	double lastCloudletArrivalTimeDC2 = -2;
+
 	/**
 	 * Stores the last vm's id used to map a cloudlet in datacenter 1. It's
 	 * initially set to -2 instead of 0 to make sure that the first cloudlet is
@@ -45,6 +47,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 	 * CloudSim.
 	 */
 	long lastVmIdDC1 = -2;
+
 	/**
 	 * Stores the last vm's id used to map a cloudlet in datacenter 2. It's
 	 * initially set to -2 instead of 0 to make sure that the first cloudlet is
@@ -80,24 +83,32 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 	 */
 	List<Long> lastVmIdListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
 
+	/**
+	 * Stores the mips of the last cloudlet that arrived in datacenter 1.
+	 */
 	long lastCloudletMipsDC1 = -2;
 
+	/**
+	 * Stores the mips of the last cloudlet that arrived in datacenter 2.
+	 */
 	long lastCloudletMipsDC2 = -2;
 
-	 /**
-     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
-     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
-     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
-     * the same time as previous cloudlets).
-     */
+	/**
+	 * A list used for storing the mips of subsequently arriving cloudlets. This
+	 * list is used in order to determine the vm to execute a cloudlet next. This
+	 * list is cleared when the next cloudlet arrives at a different time than a
+	 * subsequently arriving cloudlet (which arrived at the same time as previous
+	 * cloudlets).
+	 */
 	List<Long> lastCloudletMipsListDC1 = new ArrayList<Long>(Arrays.asList((long) -2));
 
-	 /**
-     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
-     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
-     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
-     * the same time as previous cloudlets).
-     */
+	/**
+	 * A list used for storing the mips of subsequently arriving cloudlets. This
+	 * list is used in order to determine the vm to execute a cloudlet next. This
+	 * list is cleared when the next cloudlet arrives at a different time than a
+	 * subsequently arriving cloudlet (which arrived at the same time as previous
+	 * cloudlets).
+	 */
 	List<Long> lastCloudletMipsListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
 
 	/**
@@ -106,7 +117,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 	 * @param simulation The CloudSim instance that represents the simulation the
 	 *                   Entity is related to
 	 */
-	public DatacenterBrokerWorstCustomFit(final CloudSim simulation) {
+	public DatacenterBrokerBestMap(final CloudSim simulation) {
 		super(simulation);
 	}
 
@@ -166,7 +177,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 			}
 
 			if (mappedVm != Vm.NULL) { // if there is a free vm
-				// keep track of the id of a mapped vm (a vm with the most remaining work in this case)
+				// keep track of the id of a mapped vm (a vm with the least remaining work in this case)
 				lastVmIdDC1 = mappedVm.getId(); 
 				System.out.println("A free Vm was found");
 				System.out.println("The total waiting cloudlet mips is: "
@@ -180,14 +191,14 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 			else { // if there is no free vm
 
 				/*
-				 * For subsequent cloudlets make sure to find the vm with the most remaining
+				 * For subsequent cloudlets make sure to find the vm with the least remaining
 				 * work considering that previous cloudlets arriving at the same time have been
 				 * assigned to vms but not yet mapped. This makes sure that those
 				 * "yet to be mapped" cloudlets are considered when finding the vm with the
-				 * most remaining work.
+				 * least remaining work.
 				 */
 				if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
-					System.out.println("No free vm was found so one with the most remaining work was chosen.");
+					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
 					for (int i = 0; i < datacenterVmList.size(); i++) {
 						System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
@@ -196,13 +207,13 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 					mappedVm = datacenterVmList
 						.stream()
-						.max(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips2(vm,
+						.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips2(vm,
 							lastVmIdListDC1, lastCloudletMipsListDC1))) // select the vm with the smallest total cloudlet mips
 						.orElse(Vm.NULL);
 				}
 
 				else {
-					System.out.println("No free vm was found so one with the most remaining work was chosen.");
+					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
 					for (int i = 0; i < datacenterVmList.size(); i++) {
 						System.out.println("The total number of mips to execute for Vm #"
@@ -211,10 +222,10 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 					}
 
 					mappedVm = datacenterVmList.stream()
-							.max(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm))) 
+							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm))) 
 							.orElse(Vm.NULL);
 				}
-				// keep track of the id of a mapped vm (a vm with the most remaining work in this case)
+				// keep track of the id of a mapped vm (a vm with the least remaining work in this case)
 				lastVmIdDC1 = mappedVm.getId(); 
 			}
 			lastCloudletArrivalTimeDC1 = Double.parseDouble(getSimulation().clockStr());
@@ -248,7 +259,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 			else {
 				mappedVm = datacenterVmList.stream()
 						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0) 
-						.findFirst() // this attribute doesn't matter and is used to pick any free vm (change this)
+						.findFirst() 
 						.orElse(Vm.NULL);
 				lastVmIdListDC2.clear();
 				// VV a subsequent cloudlet arrived at a different time so clear the cloudlet mips list
@@ -272,7 +283,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 				if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
 
-					System.out.println("No free vm was found so one with the most remaining work was chosen.");
+					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
 					for (int i = 0; i < datacenterVmList.size(); i++) {
 						System.out.println(
@@ -281,7 +292,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 								datacenterVmList.get(i), lastVmIdListDC2, lastCloudletMipsListDC2));
 					}
 					mappedVm = datacenterVmList.stream()
-							.max(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips2(vm,
+							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips2(vm,
 									lastVmIdListDC2, lastCloudletMipsListDC2))) /* select the vm with the shortest total
 																				 cloudlet mips */
 							.orElse(Vm.NULL);
@@ -298,7 +309,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 
 				else {
 
-					System.out.println("No free vm was found so one with the most remaining work was chosen.");
+					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
 					for (int i = 0; i < datacenterVmList.size(); i++) {
 						System.out.println("The total number of mips to execute for Vm #"
@@ -306,7 +317,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 								+ DatacenterBrokerUtility.getTotalCloudletMips(datacenterVmList.get(i)));
 					}
 					mappedVm = datacenterVmList.stream()
-							.max(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm))) 
+							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm))) 
 							.orElse(Vm.NULL);
 					System.out.println("The number of waiting cloudlets of the mapped vm is: "
 							+ DatacenterBrokerUtility.getNumOfWaitingCloudlets(mappedVm));
@@ -324,7 +335,7 @@ public class DatacenterBrokerWorstCustomFit extends DatacenterBrokerSimple {
 			lastVmIdListDC2.add(lastVmIdDC2);
 		}
 		/* either returns a vm that's free or the vm that will execute the cloudlet the 
-		slowest (has the most instructions to execute) */
+		fastest (has the least instructions to execute) */
 		return mappedVm; 
 	}
 }

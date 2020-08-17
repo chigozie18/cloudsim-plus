@@ -12,7 +12,7 @@ import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.vms.Vm;
 
 /**
- * An implementation of {@link DatacenterBroker} that uses a custom round robin
+ * An implementation of {@link DatacenterBroker} that uses a round robin
  * mapping between submitted cloudlets and vms. It cyclically selects either 
  * datacenter 1/2 or datacenter 3.
  * 
@@ -27,21 +27,21 @@ import org.cloudbus.cloudsim.vms.Vm;
  * @author Chigozie Asikaburu
  * @since CloudSim Plus 4.6.0
  */
-public class DatacenterBrokerCustomRoundRobin2 extends DatacenterBrokerSimple {
+public class DatacenterBrokerRoundRobinMap2 extends DatacenterBrokerSimple {
 
-	/**
+    /**
      * Stores the last cloudlet's arrival time in datacenter 1. This value is gotten
      * from the current simulation time when the last cloudlet arrived.
      */
     double lastCloudletArrivalTimeDC1 = -2;
-	
-	/**
+
+    /**
      * Stores the last cloudlet's arrival time in datacenter 2. This value is gotten
      * from the current simulation time when the last cloudlet arrived.
      */
     double lastCloudletArrivalTimeDC2 = -2;
-	
-	/**
+
+    /**
      * Stores the last cloudlet's arrival time in datacenter 3. This value is gotten
      * from the current simulation time when the last cloudlet arrived.
      */
@@ -55,8 +55,8 @@ public class DatacenterBrokerCustomRoundRobin2 extends DatacenterBrokerSimple {
      * CloudSim.
      */
     long lastVmIdDC1 = -2;
-	
-	/**
+
+    /**
      * Stores the last vm's id used to map a cloudlet in datacenter 2. It's
      * initially set to -2 instead of 0 to make sure that the first cloudlet is
      * mapped normally. In this way this attribute is only considered after the
@@ -64,8 +64,8 @@ public class DatacenterBrokerCustomRoundRobin2 extends DatacenterBrokerSimple {
      * CloudSim.
      */
     long lastVmIdDC2 = -2;
-	
-	/**
+
+    /**
      * Stores the last vm's id used to map a cloudlet in datacenter 3. It's
      * initially set to -2 instead of 0 to make sure that the first cloudlet is
      * mapped normally. In this way this attribute is only considered after the
@@ -124,8 +124,8 @@ public class DatacenterBrokerCustomRoundRobin2 extends DatacenterBrokerSimple {
      * variable. The list is cleared once a subsequent cloudlet arrives at a
      * different time.
      */
-    List<List<Long>> lastVmIdListAllDC = new ArrayList<List<Long>>
-    (Arrays.asList(lastVmIdListDC1,lastVmIdListDC2, lastVmIdListDC3));
+    List<List<Long>> lastVmIdListAllDC = new ArrayList<List<Long>>(
+            Arrays.asList(lastVmIdListDC1, lastVmIdListDC2, lastVmIdListDC3));
 
     /**
      * Stores the mips of the last cloudlet that arrived in datacenter 1.
@@ -143,93 +143,102 @@ public class DatacenterBrokerCustomRoundRobin2 extends DatacenterBrokerSimple {
     long lastCloudletMipsDC3 = -2;
 
     /**
-     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
-     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
-     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
-     * the same time as previous cloudlets).
+     * A list used for storing the mips of subsequently arriving cloudlets. This
+     * list is used in order to determine the vm to execute a cloudlet next. This
+     * list is cleared when the next cloudlet arrives at a different time than a
+     * subsequently arriving cloudlet (which arrived at the same time as previous
+     * cloudlets).
      */
     List<Long> lastCloudletMipsListDC1 = new ArrayList<Long>(Arrays.asList((long) -2));
 
     /**
-     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
-     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
-     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
-     * the same time as previous cloudlets).
+     * A list used for storing the mips of subsequently arriving cloudlets. This
+     * list is used in order to determine the vm to execute a cloudlet next. This
+     * list is cleared when the next cloudlet arrives at a different time than a
+     * subsequently arriving cloudlet (which arrived at the same time as previous
+     * cloudlets).
      */
     List<Long> lastCloudletMipsListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
 
     /**
-     * A list used for storing the mips of subsequently arriving cloudlets. This list is 
-     * used in order to determine the vm to execute a cloudlet next. This list is cleared when the
-     * next cloudlet arrives at a different time than a subsequently arriving cloudlet (which arrived at
-     * the same time as previous cloudlets).
+     * A list used for storing the mips of subsequently arriving cloudlets. This
+     * list is used in order to determine the vm to execute a cloudlet next. This
+     * list is cleared when the next cloudlet arrives at a different time than a
+     * subsequently arriving cloudlet (which arrived at the same time as previous
+     * cloudlets).
      */
     List<Long> lastCloudletMipsListDC3 = new ArrayList<Long>(Arrays.asList((long) -2));
 
     /**
-     * Represents a list of lists containing lists from all datacenter's lastCloudletMipsList. 
+     * Represents a list of lists containing lists from all datacenter's
+     * lastCloudletMipsList.
      */
     List<List<Long>> lastCloudletMipsListAllDC = new ArrayList<List<Long>>(
-		Arrays.asList(lastCloudletMipsListDC1, lastCloudletMipsListDC2, lastCloudletMipsListDC3));
+            Arrays.asList(lastCloudletMipsListDC1, lastCloudletMipsListDC2, lastCloudletMipsListDC3));
 
     /**
-     * Keeps track of the index of the current mapped vm reterieved from an arraylist in datacenter 1. 
-     * The value is used to cyclically choose the next vm to execute a cloudlet.
+     * Keeps track of the index of the current mapped vm reterieved from an
+     * arraylist in datacenter 1. The value is used to cyclically choose the next vm
+     * to execute a cloudlet.
      * 
      */
     int currentVmIndexDC1 = 0;
 
     /**
-     * A copied value gotton from currentVmIndexDC1 that is used for printing the actual index (before any 
-     * incrementation).
+     * A copied value gotton from currentVmIndexDC1 that is used for printing the
+     * actual index (before any incrementation).
      */
     int copyCurrentVmIndexDC1 = 0;
 
     /**
-     * Keeps track of the index of the current mapped vm reterieved from an arraylist in datacenter 2. 
-     * The value is used to cyclically choose the next vm to execute a cloudlet.
+     * Keeps track of the index of the current mapped vm reterieved from an
+     * arraylist in datacenter 2. The value is used to cyclically choose the next vm
+     * to execute a cloudlet.
      * 
      */
     int currentVmIndexDC2 = 0;
 
-     /**
-     * A copied value gotton from currentVmIndexDC2 that is used for printing the actual index (before any 
-     * incrementation).
+    /**
+     * A copied value gotton from currentVmIndexDC2 that is used for printing the
+     * actual index (before any incrementation).
      */
-	int copyCurrentVmIndexDC2 = 0;
-	
-	/**
-     * Keeps track of the index of the current mapped vm reterieved from an arraylist in datacenter 3. 
-     * The value is used to cyclically choose the next vm to execute a cloudlet.
+    int copyCurrentVmIndexDC2 = 0;
+
+    /**
+     * Keeps track of the index of the current mapped vm reterieved from an
+     * arraylist in datacenter 3. The value is used to cyclically choose the next vm
+     * to execute a cloudlet.
      * 
      */
     int currentVmIndexDC3 = 0;
 
     /**
-     * A copied value gotton from currentVmIndexDC3 that is used for printing the actual index (before any 
-     * incrementation).
+     * A copied value gotton from currentVmIndexDC3 that is used for printing the
+     * actual index (before any incrementation).
      */
-	int copyCurrentVmIndexDC3 = 0;
+    int copyCurrentVmIndexDC3 = 0;
 
-	/**
-	 * Keeps track of the index of the current mapped datacenter. The list only holds one value, which is used to 
-	 * cyclically choose the next datacenter to have one of its vms execute a cloudlet. This value alternates 
-	 * between 0 (datacenter 1) and 1 (datacenter 3). 
-	 */
-	List<Integer> currentDCIndexDC1AndDC3 = new ArrayList<Integer>(Arrays.asList((int) 0));
+    /**
+     * Keeps track of the index of the current mapped datacenter. The list only
+     * holds one value, which is used to cyclically choose the next datacenter to
+     * have one of its vms execute a cloudlet. This value alternates between 0
+     * (datacenter 1) and 1 (datacenter 3).
+     */
+    List<Integer> currentDCIndexDC1AndDC3 = new ArrayList<Integer>(Arrays.asList((int) 0));
 
-	/**
-	 * Keeps track of the index of the current mapped datacenter. The list only holds one value, which is used to 
-	 * cyclically choose the next datacenter to have one of its vms execute a cloudlet. This value alternates 
-	 * between 0 (datacenter 2) and 1 (datacenter 3). 
-	 */
-	List<Integer> currentDCIndexDC2AndDC3 = new ArrayList<Integer>(Arrays.asList((int) 0));
+    /**
+     * Keeps track of the index of the current mapped datacenter. The list only
+     * holds one value, which is used to cyclically choose the next datacenter to
+     * have one of its vms execute a cloudlet. This value alternates between 0
+     * (datacenter 2) and 1 (datacenter 3).
+     */
+    List<Integer> currentDCIndexDC2AndDC3 = new ArrayList<Integer>(Arrays.asList((int) 0));
 
-	/**
-	 * A list containing all currentDCIndex lists. 
-	 */
-	List<List<Integer>> currentDCIndexAllDC = new ArrayList<List<Integer>>
-    (Arrays.asList(currentDCIndexDC1AndDC3, currentDCIndexDC2AndDC3));
+    /**
+     * A list containing all currentDCIndex lists.
+     */
+    List<List<Integer>> currentDCIndexAllDC = new ArrayList<List<Integer>>(
+            Arrays.asList(currentDCIndexDC1AndDC3, currentDCIndexDC2AndDC3));
 
     /**
      * Creates a DatacenterBroker object.
@@ -237,7 +246,7 @@ public class DatacenterBrokerCustomRoundRobin2 extends DatacenterBrokerSimple {
      * @param simulation The CloudSim instance that represents the simulation the
      *                   Entity is related to
      */
-    public DatacenterBrokerCustomRoundRobin2(final CloudSim simulation) {
+    public DatacenterBrokerRoundRobinMap2(final CloudSim simulation) {
         super(simulation);
     }
 

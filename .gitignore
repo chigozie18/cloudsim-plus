@@ -30,3 +30,6 @@ Test.java
 *.jar
 *.~lock*
 ~$*
+
+.vscode
+.gitignore
