@@ -285,6 +285,8 @@ public class DatacenterBrokerRoundRobinMap2 extends DatacenterBrokerSimple {
             numOfVmsListAllDC.add(DatacenterBrokerUtility.getVmList(datacenterList.get(1)).size());
             numOfVmsListAllDC.add(DatacenterBrokerUtility.getVmList(datacenterList.get(2)).size());
         }
+
+        DatacenterBrokerUtility.setSimulationTime(simulationTime);
         
         DatacenterBrokerUtility.determineIfCloudletGoesToDC3RoundRobinMap(simulationTime, cloudlet, lastCloudletArrivalTimeAllDC,
          lastVmIdListAllDC, datacenterList, currentVmIndexListAllDC, numOfVmsListAllDC);

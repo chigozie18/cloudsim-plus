@@ -210,10 +210,10 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 		List<Double> lastCloudletArrivalTimeAllDC = new ArrayList<Double>(Arrays.asList(lastCloudletArrivalTimeDC1,
 		lastCloudletArrivalTimeDC2, lastCloudletArrivalTimeDC3));
 	
-		double simulationTime = Double.parseDouble(getSimulation().clockStr());
+		double simulationTime = getSimulation().clock();
 		List<Datacenter> datacenterList = getDatacenterList();
 		long oldCloudletJobId = cloudlet.getJobId();
-
+		DatacenterBrokerUtility.setSimulationTime(simulationTime);
 		DatacenterBrokerUtility.determineIfCloudletGoesToDC3BestMap(simulationTime, 
 		cloudlet, lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, datacenterList);
 		long newCloudletJobId = cloudlet.getJobId();
@@ -238,7 +238,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 			 * subsequent cloudlets to a vm which was deemed to be "free" but is actually
 			 * not. The current simulation time is used to check when cloudlets arrive.
 			 */
-			if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
+			if (lastCloudletArrivalTimeDC1 == simulationTime) {
 				// if a vm in this datacenter is free then assign the cloudlet to that vm
 				System.out.println("Subsequent cloudlet arriving at the same time");
 				mappedVm = datacenterVmList.stream()
@@ -279,7 +279,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 				 * "yet to be mapped" cloudlets are considered when finding the vm with the
 				 * least remaining work.
 				 */
-				if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
+				if (lastCloudletArrivalTimeDC1 == simulationTime) {
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
 					mappedVm = datacenterVmList
@@ -299,7 +299,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 				// keep track of the id of a mapped vm (a vm with the least remaining work in this case)
 				lastVmIdDC1 = mappedVm.getId(); 
 			}
-			lastCloudletArrivalTimeDC1 = Double.parseDouble(getSimulation().clockStr());
+			lastCloudletArrivalTimeDC1 = simulationTime;
 			lastCloudletMipsListDC1.add(cloudlet.getLength());
 			lastVmIdListDC1.add(lastVmIdDC1);
 		}
@@ -311,7 +311,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 
 			/* if subsequent cloudlets arrive at the same time then make sure it doesn't get
 			   mapped to the last vm used */
-			if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
+			if (lastCloudletArrivalTimeDC2 == simulationTime) {
 				// if a vm in this datacenter is free then assign the cloudlet to that vm
 				System.out.println("Subsequent cloudlet arriving at the same time");
 
@@ -348,7 +348,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 
 			else { // if there is no free vm
 
-				if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
+				if (lastCloudletArrivalTimeDC2 == simulationTime) {
 
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
@@ -368,7 +368,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 				}
 				lastVmIdDC2 = mappedVm.getId();
 			}
-			lastCloudletArrivalTimeDC2 = Double.parseDouble(getSimulation().clockStr());
+			lastCloudletArrivalTimeDC2 = simulationTime;
 			lastCloudletMipsListDC2.add(cloudlet.getLength());
 			lastVmIdListDC2.add(lastVmIdDC2);
         }
@@ -381,7 +381,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 
 			/* if subsequent cloudlets arrive at the same time then make sure it doesn't get
 			   mapped to the last vm used */
-			if (lastCloudletArrivalTimeDC3 == Double.parseDouble(getSimulation().clockStr())) {
+			if (lastCloudletArrivalTimeDC3 == simulationTime) {
 				// if a vm in this datacenter is free then assign the cloudlet to that vm
 				System.out.println("Subsequent cloudlet arriving at the same time");
 
@@ -418,7 +418,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 
 			else { // if there is no free vm
 
-				if (lastCloudletArrivalTimeDC3 == Double.parseDouble(getSimulation().clockStr())) {
+				if (lastCloudletArrivalTimeDC3 == simulationTime) {
 
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
@@ -438,7 +438,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 				}
 				lastVmIdDC3 = mappedVm.getId();
 			}
-			lastCloudletArrivalTimeDC3 = Double.parseDouble(getSimulation().clockStr());
+			lastCloudletArrivalTimeDC3 = simulationTime;
 			lastCloudletMipsListDC3.add(cloudlet.getLength());
 			lastVmIdListDC3.add(lastVmIdDC3);
 		}
