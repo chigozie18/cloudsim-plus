@@ -1,5 +1,7 @@
 package org.cloudsimplus.examples.research.scenariopart2;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -16,8 +18,8 @@ import org.cloudsimplus.builders.tables.CloudletsTableBuilder;
 import org.cloudsimplus.examples.research.CloudCreator;
 import org.cloudsimplus.examples.research.CloudResults;
 import org.cloudsimplus.examples.research.DatacenterBrokerBestMap2;
-import org.cloudsimplus.examples.research.DatacenterBrokerWorstMap2;
 import org.cloudsimplus.examples.research.DatacenterBrokerRoundRobinMap2;
+import org.cloudsimplus.examples.research.DatacenterBrokerUtility;
 import org.cloudsimplus.listeners.EventInfo;
 
 /**
@@ -42,7 +44,7 @@ public class Scenario1 {
 	} 
 
 	private Scenario1() {
-
+		System.out.println("\033[2J\033[1;1H");
 		simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
 		simulation.terminateAt(4000);
 		// Creates a list of hosts 
@@ -54,6 +56,7 @@ public class Scenario1 {
 		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts  
 		datacenter2 = CloudCreator.createDatacenter(simulation, hostList3, 1);  // creates a datacenter and it's hosts      
 
+		// List<Datacenter> datacenterList = new ArrayList<>(Arrays.asList(datacenter0, datacenter1, datacenter2));
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
 		broker0 = new DatacenterBrokerRoundRobinMap2(simulation); 
 

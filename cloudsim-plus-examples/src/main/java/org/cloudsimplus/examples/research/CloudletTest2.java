@@ -10,14 +10,16 @@ import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 
 public class CloudletTest2 {
 
+	private static String workingDirectory = System.getProperty("user.dir");
+
 	public static void main(String[] args) {
 		cloudletSubmissionDelaySortTest3();
 	}
 
 	public static void cloudletSubmissionDelaySortTest() {
 
-		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
-		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
+		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter1_Cloudlets.csv");
+		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Cloudlets.csv");
 
 		List<Cloudlet> cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())
@@ -34,8 +36,8 @@ public class CloudletTest2 {
 
 	public static void cloudletSubmissionDelaySortTest2() {
 
-		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
-		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
+		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter1_Cloudlets.csv");
+		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Cloudlets.csv");
 
 		List<Cloudlet> cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())
@@ -61,8 +63,8 @@ public class CloudletTest2 {
 	
 	public static void cloudletSubmissionDelaySortTest3() {
 
-		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter1_Cloudlets.csv");
-		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2("/Users/chigozieasikaburu/git/cloudsim-plus/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Scenario1_Datacenter2_Cloudlets.csv");
+		List<Cloudlet> cloudletList = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter1_Cloudlets.csv");
+		List<Cloudlet> cloudletList2 = CloudCreator.createCloudletsFromFile2(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Cloudlets.csv");
 
 		List<Cloudlet> cloudletList3 = Stream.of(cloudletList, cloudletList2)
 				.flatMap(x -> x.stream())
@@ -80,10 +82,6 @@ public class CloudletTest2 {
 			System.out.println("Submission Delay: " + cloudletList3.get(i).getSubmissionDelay());
 			System.out.println("Job ID: " + cloudletList3.get(i).getJobId());
 			System.out.println("\n");
-		}	
-
-
-
+		}
 	}
-
 }

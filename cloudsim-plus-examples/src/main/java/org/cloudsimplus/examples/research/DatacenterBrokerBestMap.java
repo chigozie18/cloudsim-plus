@@ -122,10 +122,8 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * <p>
-	 * <b>It applies a Round-Robin policy to cyclically select the next Vm from the
+	 * <b>It applies a best mapping policy to select the next Vm from the
 	 * {@link #getVmWaitingList() list of waiting VMs}.
 	 * </p>
 	 *

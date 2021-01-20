@@ -1,6 +1,8 @@
 package org.cloudsimplus.examples.research;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,7 +21,6 @@ import org.cloudbus.cloudsim.vms.Vm;
  *
  */
 public class DatacenterBrokerUtility {
-
 
 	/**
 	 * Gets the list of all vms in a given datacenter.
@@ -54,7 +55,6 @@ public class DatacenterBrokerUtility {
 	public static List<Cloudlet> getAllVmCloudletLists(Datacenter datacenter) {  	
 
 		List<Vm> vmList = getVmList(datacenter);
-		Vm vm = null;
 		List<Cloudlet> vmCloudletLists = new ArrayList<>();
 
 		// iterates over every vm and gets all of it's waiting and executing cloudlets and adds them to a list
@@ -82,31 +82,13 @@ public class DatacenterBrokerUtility {
 	}
 
 	/**
-	 * Gets the total mips of all waiting cloudlets and mips remaining so far from currently executing cloudlets in a given datacenter.
-	 * 
-	 * @param datacenter the datacenter to get the total mips of all waiting cloudlets and remaining mips of executing cloudlets
-	 * 
-	 * @return the total mips of all waiting and remaining mips of executing cloudlets in a datacenter
-	 */
-	public static long getTotalCloudletMipsInDC(Datacenter datacenter) {  	
-
-		List<Vm> vmList = getVmList(datacenter);
-		long totalCloudletMips = 0;
-		for (int i = 0; i < vmList.size(); i++) {
-			totalCloudletMips = totalCloudletMips + getTotalCloudletMips(vmList.get(i));
-		}
-
-		return totalCloudletMips;
-	}
-
-	/**
 	 * Gets the total mips of all waiting cloudlets and mips remaining so far from currently executing cloudlets in a given vm. This method also 
 	 * considers that previous cloudlets that arrived at the same time, have been assigned to vms but not yet "offically" mapped by CloudSim. 
 	 * It calculates the mips to execute from those "yet to be mapped" cloudlets and adds them to the total. 
 	 * 
 	 * @param vm the vm to get the total mips of all waiting cloudlets and remaining mips of executing cloudlets
 	 * @param lastVmIdList the list of last vm ids that mapped a cloudlet
-	 * @param lastCloudletMips the mips of the last cloudlet that arrived
+	 * @param lastCloudletMipsList the mips of the last cloudlet that arrived
 	 * 
 	 * @see #getTotalCloudletMips(Vm)
 	 * 
@@ -126,27 +108,33 @@ public class DatacenterBrokerUtility {
 	}
 
 	/**
-	 * Gets the total mips of all waiting cloudlets and mips remaining so far from currently executing cloudlets in a given datacenter. This method also 
-	 * considers that previous cloudlets that arrived at the same time, have been assigned to vms but not yet "offically" mapped by CloudSim. 
-	 * It calculates the mips to execute from those "yet to be mapped" cloudlets and adds them to the total. The "2" in this method name doesn't refer to
-	 * datacenter 2 but that it's a variation of {@link #getTotalCloudletMipsInDC(Datacenter)}. 
+	 * Gets the total mips of all waiting cloudlets and mips remaining so far from currently executing cloudlets for a vm in datacenter 3. 
+	 * This method may consider that previous cloudlets that arrived at the same time, have been assigned to vms but not yet "offically" 
+	 * mapped by CloudSim. It calculates the mips to execute from those "yet to be mapped" cloudlets and adds them to the total. 
 	 * 
-	 * @param datacenter the datacenter to get the total mips of all waiting cloudlets and remaining mips of executing cloudlets
-	 * @param lastVmIdList the list of last vm ids that mapped a cloudlet
-	 * @param lastCloudletMips the mips of the last cloudlet that arrived
+	 * @param vm a vm in datacenter 3 to get the total mips of all waiting cloudlets and remaining mips of executing cloudlets
+	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
+	 * @param lastVmIdList the list of last vm ids that mapped a cloudlet to get the total cloudlet mips in a vm
+	 * @param lastCloudletArrivalTime the list of the last cloudlet arrival times to get the total cloudlet mips in a vm
+	 * @param lastCloudletMipsList the list of the last cloudlet mips to get the total cloudlet mips in a vm
 	 * 
 	 * @see #getTotalCloudletMipsInDC(Datacenter)
 	 * 
-	 * @return the total mips of all waiting and remaining mips of executing cloudlets in a datacenter
+	 * @return the total mips of all waiting and remaining mips of executing cloudlets in a vm in datacenter 3
 	 */
-	public static long getTotalCloudletMipsInDC2 (Datacenter datacenter, List<Long> lastVmIdList, List<Long> lastCloudletMipsList) {
-
+	public static long getTotalCloudletMipsForDC3 (Vm vm, double currentSimulationTime,  List<Long> lastVmIdList, 
+	double lastCloudletArrivalTime, List<Long> lastCloudletMipsList) {
+	
 		long totalCloudletMips = 0;
-		List<Vm> vmList = getVmList(datacenter);
-		for (int i = 0; i < vmList.size(); i++) {
-			totalCloudletMips = totalCloudletMips + getTotalCloudletMips2(vmList.get(i), lastVmIdList, lastCloudletMipsList);
+
+		if (lastCloudletArrivalTime == currentSimulationTime) { 
+			totalCloudletMips = getTotalCloudletMips2(vm, lastVmIdList, lastCloudletMipsList);
 		}
-		
+
+		else {
+			totalCloudletMips = getTotalCloudletMips(vm);
+		}	
+
 		return totalCloudletMips;
 	}
 
@@ -252,8 +240,8 @@ public class DatacenterBrokerUtility {
 	public static boolean isDatacenterFree(Datacenter datacenter, List<Long> lastVmIdList) {  	
 		List<Vm> datacenterVmList = getVmList(datacenter);
 		Vm mappedVm = datacenterVmList.stream()
-						.filter(vm -> getNumOfExecutingCloudlets(vm) == 0
-								&& !lastVmIdList.contains(vm.getId()))
+						.filter(vm -> getNumOfExecutingCloudlets(vm) == 0 &&
+						getNumOfWaitingCloudlets(vm) == 0 && !lastVmIdList.contains(vm.getId()))
 						.findFirst() 
 						.orElse(Vm.NULL);
 
@@ -277,7 +265,7 @@ public class DatacenterBrokerUtility {
 	public static boolean isDatacenterFree2(Datacenter datacenter) {  	
 		List<Vm> datacenterVmList = getVmList(datacenter);
 		Vm mappedVm = datacenterVmList.stream()
-						.filter(vm -> getNumOfExecutingCloudlets(vm) == 0)
+						.filter(vm -> getNumOfExecutingCloudlets(vm) == 0 && getNumOfWaitingCloudlets(vm) == 0)
 						.findFirst() 
 						.orElse(Vm.NULL);
 
@@ -322,260 +310,219 @@ public class DatacenterBrokerUtility {
 	}
 
 	/**
-	 * Determines if a cloudlet will go to datacenter 3. This method is optimal and will only assign 
-	 * a cloudlet to datacenter 3 if datacenter 3 is free and datacenter 1 or 2 aren't. If neither
-	 * datacenter 1 or 2 or datacenter 3 is free, the method will assign a cloudlet to datacenter 3 if 
-	 * it has the least remaining work compared to datacenter 1 or 2.
+	 * Gets the vm with the least remaining work. 
 	 * 
-	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
-	 * @param cloudlet the cloudlet to determine if it will go to datacenter 3 
-	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times in all datacenters 
-	 * @param lastCloudletMipsListAllDC the list of the last cloudlet mips in all datacenters 
-	 * @param lastVmIdListAllDC the list of the last vm ids in all datacenters 
-	 * @param datacenterList the list of all datacenters 
+	 * @param vmList the list of all vms in a datacenter 
 	 * 
+	 * @return the vm with the least remaining work 
 	 */
-	public static void determineIfCloudletGoesToDC3BestFit(double currentSimulationTime, Cloudlet cloudlet, List<Double> lastCloudletArrivalTimeAllDC,
-	List<List<Long>> lastCloudletMipsListAllDC, List<List<Long>> lastVmIdListAllDC, List<Datacenter> datacenterList) {
-
-		long cloudletJobId = cloudlet.getJobId();
-		Datacenter datacenter = datacenterList.get((int) cloudletJobId - 1); // could be datacenter 1 or 2
-		Datacenter datacenter3 = datacenterList.get(2);
-		double lastCloudletArrivalTime = lastCloudletArrivalTimeAllDC.get((int) cloudletJobId - 1);
-		double lastCloudletArrivalTimeDC3 = lastCloudletArrivalTimeAllDC.get(2);
-		List<Long> lastCloudletMipsList = lastCloudletMipsListAllDC.get((int) cloudletJobId - 1);
-		List<Long> lastCloudletMipsListDC3 = lastCloudletMipsListAllDC.get(2);
-		List<Long> lastVmIdList = lastVmIdListAllDC.get((int) cloudletJobId - 1);
-		List<Long> lastVmIdListDC3 = lastVmIdListAllDC.get(2);
-
-		if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
-			boolean datacenterFree = isDatacenterFree(datacenter, lastVmIdList);
-			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
-
-			if (datacenterFree == false && datacenter3Free == true) {
-				cloudlet.setJobId(3);  // if datacenter 1 or 2 isn't free but datacenter 3 is then execute the cloudlet in datacenter 3 
-			}
-
-			// if datacenter 1 or 2 and datacenter 3 is busy pick the least busy of the datacenters 
-			else if (datacenterFree == false && datacenter3Free == false) { 
-				long totalCloudletMips = getTotalCloudletMipsInDC2(datacenter, lastVmIdList, lastCloudletMipsList);
-				long totalCloudletMipsDC3 = getTotalCloudletMipsForDC3(datacenter3, currentSimulationTime, lastVmIdListDC3,
-				lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
-
-				System.out.println("The total cloudlet mips of DC #" + cloudletJobId + " is: " + totalCloudletMips);
-				System.out.println("The total cloudlet mips of DC #3 is: " + totalCloudletMipsDC3);
-
-				if (totalCloudletMipsDC3 < totalCloudletMips) {  // if the two are equal (rare case) the cloudlet is sent to datacenter 1 or 2 instead of datacenter 3
-					cloudlet.setJobId(3);  // if neither datacenter 1 or 2 or datacenter 3 is free then execute the cloudlet in datacenter 3 if it has the least remaining work 
-				}
-			}
-		}
-
-		else { // if the next cloudlet arrives at a different time than the last cloudlet
-			boolean datacenterFree  = isDatacenterFree2(datacenter);
-			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
-
-			if (datacenterFree == false && datacenter3Free == true) {
-				cloudlet.setJobId(3);  
-			}
-
-			else if (datacenterFree == false && datacenter3Free == false) { 				
-				long totalCloudletMips = getTotalCloudletMipsInDC(datacenter);
-				long totalCloudletMipsDC3 = getTotalCloudletMipsForDC3(datacenter3, currentSimulationTime, lastVmIdListDC3,
-				lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
-				
-				System.out.println("The total cloudlet mips of DC #" + cloudletJobId + " is: " + totalCloudletMips);
-				System.out.println("The total cloudlet mips of DC #3 is: " + totalCloudletMipsDC3);
-
-				if (totalCloudletMipsDC3 < totalCloudletMips) {  
-					cloudlet.setJobId(3);
-				}
-			}
-		}
+	public static Vm getVmWithLeastReaminingWork(List<Vm> vmList) {
+		Vm leastRemainingVm = vmList
+			.stream()
+			.min(Comparator.comparingLong(vm -> getTotalCloudletMips(vm))) // select the vm with the smallest total cloudlet mips
+			.orElse(Vm.NULL);
+		return leastRemainingVm;
 	}
 
 	/**
-	 * Determines if a cloudlet will go to datacenter 3. This method is non-optimal and will assign 
-	 * a cloudlet to datacenter 3 if datacenter 3 is free and datacenter 1 or 2 aren't. If neither
-	 * datacenter 1 or 2 or datacenter 3 is free, the method will assign a cloudlet to datacenter 3 if 
-	 * it has the most remaining work compared to datacenter 1 or 2.
+	 * Gets the vm with the least remaining work. This method takes into account subsequent cloudlets 
+	 * arriving at the same time. 
 	 * 
-	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
-	 * @param cloudlet the cloudlet to determine if it will go to datacenter 3 
-	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times in all datacenters 
-	 * @param lastCloudletMipsListAllDC the list of the last cloudlet mips in all datacenters 
-	 * @param lastVmIdListAllDC the list of the last vm ids in all datacenters 
-	 * @param datacenterList the list of all datacenters 
+	 * @param vmList the list of all vms in a datacenter 
+	 * @param lastVmIdList the list of the last vm ids to get the vm with the least remaining work 
+	 * @param lastCloudletMipsList the list of the last cloudlet mips to get the vm with the least remaining work
 	 * 
+	 * @return the vm with the least remaining work 
 	 */
-	public static void determineIfCloudletGoesToDC3WorstFit(double currentSimulationTime, Cloudlet cloudlet, List<Double> lastCloudletArrivalTimeAllDC,
-	List<List<Long>> lastCloudletMipsListAllDC, List<List<Long>> lastVmIdListAllDC, List<Datacenter> datacenterList) {
-
-		long cloudletJobId = cloudlet.getJobId();
-		Datacenter datacenter = datacenterList.get((int) cloudletJobId - 1); // could be datacenter 1 or 2
-		Datacenter datacenter3 = datacenterList.get(2);
-		double lastCloudletArrivalTime = lastCloudletArrivalTimeAllDC.get((int) cloudletJobId - 1);
-		double lastCloudletArrivalTimeDC3 = lastCloudletArrivalTimeAllDC.get(2);
-		List<Long> lastCloudletMipsList = lastCloudletMipsListAllDC.get((int) cloudletJobId - 1);
-		List<Long> lastCloudletMipsListDC3 = lastCloudletMipsListAllDC.get(2);
-		List<Long> lastVmIdList = lastVmIdListAllDC.get((int) cloudletJobId - 1);
-		List<Long> lastVmIdListDC3 = lastVmIdListAllDC.get(2);
-
-		if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
-			boolean datacenterFree = isDatacenterFree(datacenter, lastVmIdList);
-			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
-
-			if (datacenterFree == false && datacenter3Free == true) {
-				cloudlet.setJobId(3);  // if datacenter 1 or 2 isn't free but datacenter 3 is then execute the cloudlet in datacenter 3 
-			}
-
-			// if datacenter 1 or 2 and datacenter 3 is busy pick the least busy of the datacenters 
-			else if (datacenterFree == false && datacenter3Free == false) { 
-				long totalCloudletMips = getTotalCloudletMipsInDC2(datacenter, lastVmIdList, lastCloudletMipsList);
-				long totalCloudletMipsDC3 = getTotalCloudletMipsForDC3(datacenter3, currentSimulationTime, lastVmIdListDC3,
-				lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
-
-				System.out.println("The total cloudlet mips of DC #" + cloudletJobId + " is: " + totalCloudletMips);
-				System.out.println("The total cloudlet mips of DC #3 is: " + totalCloudletMipsDC3);
-
-				if (totalCloudletMipsDC3 >= totalCloudletMips) {  // if the two are equal (rare case) the cloudlet is sent to datacenter 3 instead of datacenter 1 or 2
-					cloudlet.setJobId(3);  // if neither datacenter 1 or 2 or datacenter 3 is free then execute the cloudlet in datacenter 3 if it has the most remaining work 
-				}
-			}
-		}
-
-		else { // if the next cloudlet arrives at a different time than the last cloudlet
-			boolean datacenterFree  = isDatacenterFree2(datacenter);
-			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
-
-			if (datacenterFree == false && datacenter3Free == true) {
-				cloudlet.setJobId(3);  
-			}
-
-			else if (datacenterFree == false && datacenter3Free == false) { 				
-				long totalCloudletMips = getTotalCloudletMipsInDC(datacenter);
-				long totalCloudletMipsDC3 = getTotalCloudletMipsForDC3(datacenter3, currentSimulationTime, lastVmIdListDC3,
-				lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
-				
-				System.out.println("The total cloudlet mips of DC #" + cloudletJobId + " is: " + totalCloudletMips);
-				System.out.println("The total cloudlet mips of DC #3 is: " + totalCloudletMipsDC3);
-
-				if (totalCloudletMipsDC3 >= totalCloudletMips) {  
-					cloudlet.setJobId(3);
-				}
-			}
-		}
+	public static Vm getVmWithLeastReaminingWorkSubsequent(List<Vm> vmList, List<Long> lastVmIdList, List<Long> lastCloudletMipsList) {
+		Vm leastRemainingVm = vmList
+			.stream()
+			.min(Comparator.comparingLong(vm -> getTotalCloudletMips2(vm,
+				lastVmIdList, lastCloudletMipsList))) // select the vm with the smallest total cloudlet mips
+			.orElse(Vm.NULL);
+		return leastRemainingVm;
 	}
 
 	/**
-	 * Determines if a cloudlet will go to datacenter 3. This method uses round robin scheduling and 
-	 * will assign a cloudlet to datacenter 3 if datacenter 3 is free and datacenter 1 or 2 aren't. If neither
-	 * datacenter 1 or 2 or datacenter 3 is free, the method will cyclically assign a cloudlet to a datacenter 
-	 * (alternating between datacenter 1/2 and datacenter 3). 
+	 * Gets the vm with the least remaining work in datacenter 3. This method takes into account subsequent cloudlets 
+	 * arriving at the same time. 
 	 * 
+	 * @param vmList the list of all vms in datacenter 3
 	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
-	 * @param cloudlet the cloudlet to determine if it will go to datacenter 3
-	 * @param currentDCIndexAllDC the list of the current datacenter indexes
-	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times in all datacenters 
-	 * @param lastCloudletMipsListAllDC the list of the last cloudlet mips in all datacenters 
-	 * @param lastVmIdListAllDC the list of the last vm ids in all datacenters 
-	 * @param datacenterList the list of all datacenters 
+	 * @param lastVmIdList the list of the last vm ids to get the vm with the least remaining work 
+	 * @param lastCloudletArrivalTime the last cloudlet arrival time to get the vm with the least remaining work
+	 * @param lastCloudletMipsList the list of the last cloudlet mips to get the vm with the least remaining work
 	 * 
+	 * @return the vm with the least remaining work in datacenter 3
 	 */
-	public static void determineIfCloudletGoesToDC3RoundRobin(double currentSimulationTime, Cloudlet cloudlet, List<List<Integer>> currentDCIndexAllDC,
-	List<Double> lastCloudletArrivalTimeAllDC, List<List<Long>> lastCloudletMipsListAllDC, List<List<Long>> lastVmIdListAllDC, 
-	List<Datacenter> datacenterList) {
-
-		long cloudletJobId = cloudlet.getJobId();
-		Datacenter datacenter = datacenterList.get((int) cloudletJobId - 1); // could be datacenter 1 or 2
-		Datacenter datacenter3 = datacenterList.get(2);
-		int currentDCIndex = currentDCIndexAllDC.get((int) cloudletJobId - 1).get(0);
-		double lastCloudletArrivalTime = lastCloudletArrivalTimeAllDC.get((int) cloudletJobId - 1);
-		double lastCloudletArrivalTimeDC3 = lastCloudletArrivalTimeAllDC.get(2);
-		List<Long> lastCloudletMipsList = lastCloudletMipsListAllDC.get((int) cloudletJobId - 1);
-		List<Long> lastCloudletMipsListDC3 = lastCloudletMipsListAllDC.get(2);
-		List<Long> lastVmIdList = lastVmIdListAllDC.get((int) cloudletJobId - 1);
-		List<Long> lastVmIdListDC3 = lastVmIdListAllDC.get(2);
-
-		if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
-			boolean datacenterFree = isDatacenterFree(datacenter, lastVmIdList);
-			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
-
-			if (datacenterFree == false && datacenter3Free == true) {
-				cloudlet.setJobId(3);  // if datacenter 1 or 2 isn't free but datacenter 3 is then execute the cloudlet in datacenter 3 
-			}
-
-			// if datacenter 1 or 2 and datacenter 3 is busy pick the least busy of the datacenters 
-			else if (datacenterFree == false && datacenter3Free == false) { 
-				long totalCloudletMips = getTotalCloudletMipsInDC2(datacenter, lastVmIdList, lastCloudletMipsList);
-				long totalCloudletMipsDC3 = getTotalCloudletMipsForDC3(datacenter3, currentSimulationTime, lastVmIdListDC3,
-				lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
-
-				System.out.println("The total cloudlet mips of DC #" + cloudletJobId + " is: " + totalCloudletMips);
-				System.out.println("The total cloudlet mips of DC #3 is: " + totalCloudletMipsDC3);
-
-				if (currentDCIndex == 1) {  
-					cloudlet.setJobId(3); 
-				}
-				currentDCIndex = (currentDCIndex + 1) % 2; // if neither datacenter is free alternate between datacenter 1/2 and datacenter 3
-				currentDCIndexAllDC.get((int) cloudletJobId - 1).set(0, currentDCIndex);
-			}
-		}
-
-		else { // if the next cloudlet arrives at a different time than the last cloudlet
-			boolean datacenterFree  = isDatacenterFree2(datacenter);
-			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
-
-			if (datacenterFree == false && datacenter3Free == true) {
-				cloudlet.setJobId(3);  
-			}
-
-			else if (datacenterFree == false && datacenter3Free == false) { 				
-				long totalCloudletMips = getTotalCloudletMipsInDC(datacenter);
-				long totalCloudletMipsDC3 = getTotalCloudletMipsForDC3(datacenter3, currentSimulationTime, lastVmIdListDC3,
-				lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
-				
-				System.out.println("The total cloudlet mips of DC #" + cloudletJobId + " is: " + totalCloudletMips);
-				System.out.println("The total cloudlet mips of DC #3 is: " + totalCloudletMipsDC3);
-
-				if (currentDCIndex == 1) {  
-					cloudlet.setJobId(3); 
-				}
-				currentDCIndex = (currentDCIndex + 1) % 2; 
-				currentDCIndexAllDC.get((int) cloudletJobId - 1).set(0, currentDCIndex);
-			}
-		}
-	}
-
-	/**
-	 * Gets the total mips for datacenter 3. This method may consider that previous cloudlets that arrived at the same time,
-	 * have been assigned to vms but not yet "offically" mapped by CloudSim. It calculates the mips to execute from those 
-	 * "yet to be mapped" cloudlets and adds them to the total. 
-	 * 
-	 * @param datacenter datacenter 3 to get the total mips of all waiting cloudlets and remaining mips of executing cloudlets
-	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
-	 * @param lastVmIdList the list of last vm ids that mapped a cloudlet
-	 * @param lastCloudletArrivalTime the list of the last cloudlet arrival times to get the cloudlet mips in a datacenter 
-	 * @param lastCloudletMipsList the list of the last cloudlet mips to help print the cloudlet mips in every vm in a datacenter 
-	 * 
-	 * @see #getTotalCloudletMipsInDC(Datacenter)
-	 * 
-	 * @return the total mips of all waiting and remaining mips of executing cloudlets in datacenter 3
-	 */
-	public static long getTotalCloudletMipsForDC3 (Datacenter datacenter, double currentSimulationTime,  List<Long> lastVmIdList, 
+	public static Vm getVmWithLeastReaminingWorkForDC3(List<Vm> vmList, double currentSimulationTime,  List<Long> lastVmIdList, 
 	double lastCloudletArrivalTime, List<Long> lastCloudletMipsList) {
-	
-		long totalCloudletMips = 0;
+		Vm leastRemainingVm = null;
 
-		if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
-			totalCloudletMips = getTotalCloudletMipsInDC2(datacenter, lastVmIdList, lastCloudletMipsList);
+		if (lastCloudletArrivalTime == currentSimulationTime) { 
+			leastRemainingVm = getVmWithLeastReaminingWorkSubsequent(vmList, lastVmIdList, lastCloudletMipsList);
 		}
 
 		else {
-			totalCloudletMips = getTotalCloudletMipsInDC(datacenter);
+			leastRemainingVm = getVmWithLeastReaminingWork(vmList);
 		}	
 
-		return totalCloudletMips;
+		return leastRemainingVm;
+	}
+
+	/**
+	 * Determines if a cloudlet will go to datacenter 3. This method is optimal and will assign 
+	 * a cloudlet to datacenter 3 if datacenter 3 is free and datacenter 1/2 isn't. If neither
+	 * datacenter 1/2 or datacenter 3 is free, the method will assign a cloudlet to the vm 
+	 * with the least remaining work, which is in datacenter 1/2 or 3. It does this by changing 
+	 * the job id of a cloudlet. 
+	 * 
+	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
+	 * @param cloudlet the cloudlet to determine if it will go to datacenter 3 
+	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times in all datacenters 
+	 * @param lastCloudletMipsListAllDC the list of the last cloudlet mips in all datacenters 
+	 * @param lastVmIdListAllDC the list of the last vm ids in all datacenters 
+	 * @param datacenterList the list of all datacenters 
+	 * 
+	 */
+	public static void determineIfCloudletGoesToDC3BestMap(double currentSimulationTime, Cloudlet cloudlet, List<Double> lastCloudletArrivalTimeAllDC,
+	List<List<Long>> lastCloudletMipsListAllDC, List<List<Long>> lastVmIdListAllDC, List<Datacenter> datacenterList) {
+
+		int datacenterIndex = (int) cloudlet.getJobId() - 1;  // the cloudlet job id/datacenter, which corresponds to a position in a list
+		Datacenter datacenter = datacenterList.get(datacenterIndex); // could be datacenter 1 or 2
+		Datacenter datacenter3 = datacenterList.get(2);
+		List<Vm> vmList = getVmList(datacenter);
+		List<Vm> vmListDC3 = getVmList(datacenter3);
+
+		double lastCloudletArrivalTime = lastCloudletArrivalTimeAllDC.get(datacenterIndex);
+		double lastCloudletArrivalTimeDC3 = lastCloudletArrivalTimeAllDC.get(2);
+		List<Long> lastCloudletMipsList = lastCloudletMipsListAllDC.get(datacenterIndex);
+		List<Long> lastCloudletMipsListDC3 = lastCloudletMipsListAllDC.get(2);
+		List<Long> lastVmIdList = lastVmIdListAllDC.get(datacenterIndex);
+		List<Long> lastVmIdListDC3 = lastVmIdListAllDC.get(2);
+
+		if (lastCloudletArrivalTime == currentSimulationTime) { // if the current cloudlet (from datacenter 1/2) arrives at the same time as the last cloudlet
+			boolean datacenterFree = isDatacenterFree(datacenter, lastVmIdList);
+			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
+
+			if (datacenterFree == false && datacenter3Free == true) {
+				cloudlet.setJobId(3);  // if datacenter 1 or 2 isn't free but datacenter 3 is then execute the cloudlet in datacenter 3 
+			}
+
+			// if datacenter 1 or 2 and datacenter 3 is busy pick the vm with the least remaining work 
+			else if (datacenterFree == false && datacenter3Free == false) { 
+
+				Vm leastRemainingVm = getVmWithLeastReaminingWorkSubsequent(vmList, lastVmIdList, lastCloudletMipsList);
+				Vm leastRemainingVmDC3 = getVmWithLeastReaminingWorkForDC3(vmListDC3, currentSimulationTime, lastVmIdListDC3,
+					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
+				
+				long leastRemainingVmMips = getTotalCloudletMips2(leastRemainingVm, lastVmIdList, lastCloudletMipsList);
+				long leastRemainingVmMipsDC3 = getTotalCloudletMipsForDC3(leastRemainingVmDC3, currentSimulationTime, lastVmIdListDC3,
+					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
+
+				/* if the vm with the least remaining work's mips in datacenter 3 is less than the one in datacenter 1/2 then execute the 
+				   cloudlet in datacenter 3. In the rare case they are the same, the cloudlet is executed in datacenter 1/2 instead. */
+				if (leastRemainingVmMipsDC3 < leastRemainingVmMips) {  
+					cloudlet.setJobId(3);   
+				}
+			}
+		}
+
+		else { // if the current cloudlet (from datacenter 1/2) arrives at a different time than the last cloudlet
+			boolean datacenterFree  = isDatacenterFree2(datacenter);
+			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
+
+			if (datacenterFree == false && datacenter3Free == true) {
+				cloudlet.setJobId(3);  
+			}
+
+			else if (datacenterFree == false && datacenter3Free == false) { 				
+				Vm leastRemainingVm = getVmWithLeastReaminingWork(vmList);
+				Vm leastRemainingVmDC3 = getVmWithLeastReaminingWorkForDC3(vmListDC3, currentSimulationTime, lastVmIdListDC3,
+					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
+				
+				long leastRemainingVmMips = getTotalCloudletMips(leastRemainingVm);
+				long leastRemainingVmMipsDC3 = getTotalCloudletMipsForDC3(leastRemainingVmDC3, currentSimulationTime, lastVmIdListDC3,
+					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
+
+				/* if the vm with the least remaining work's mips in datacenter 3 is less than the one in datacenter 1/2 then execute the 
+				   cloudlet in datacenter 3. In the rare case they are the same, the cloudlet is executed in datacenter 1/2 instead. */
+				if (leastRemainingVmMipsDC3 < leastRemainingVmMips) {  
+					cloudlet.setJobId(3);   
+				}
+			}
+		}
+	}
+
+	/**
+	 * Determines if a cloudlet will go to datacenter 3. This method uses round robin and will assign 
+	 * a cloudlet to datacenter 3 if datacenter 3 is free and datacenter 1/2 isn't. If neither
+	 * datacenter 1/2 or datacenter 3 is free, the method will cyclically assign a cloudlet to a vm,
+	 * which is in datacenter 1/2 or 3. It's important to note that there's two instances of round robin 
+	 * going on. One is between datacenter 1 and 3 and the other between datacenter 2 and 3. 
+	 * It assigns the cloudlet to a vm in a datacenter by changing the job id of a cloudlet. 
+	 * 
+	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
+	 * @param cloudlet the cloudlet to determine if it will go to datacenter 3 
+	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times in all datacenters 
+	 * @param lastVmIdListAllDC the list of the last vm ids in all datacenters 
+	 * @param datacenterList the list of all datacenters 
+	 * 
+	 */
+	public static void determineIfCloudletGoesToDC3RoundRobinMap(double currentSimulationTime, Cloudlet cloudlet, List<Double> lastCloudletArrivalTimeAllDC,
+	 List<List<Long>> lastVmIdListAllDC, List<Datacenter> datacenterList, List<Integer> currentVmIndexListAllDC,
+	List<Integer> numOfVmsListAllDC) {
+
+		int datacenterIndex = (int) cloudlet.getJobId() - 1;  // the cloudlet job id/datacenter, which corresponds to a position in a list
+		Datacenter datacenter = datacenterList.get(datacenterIndex); // could be datacenter 1 or 2
+		Datacenter datacenter3 = datacenterList.get(2);
+
+		double lastCloudletArrivalTime = lastCloudletArrivalTimeAllDC.get(datacenterIndex);
+		double lastCloudletArrivalTimeDC3 = lastCloudletArrivalTimeAllDC.get(2);
+		List<Long> lastVmIdList = lastVmIdListAllDC.get(datacenterIndex);
+		List<Long> lastVmIdListDC3 = lastVmIdListAllDC.get(2);
+
+		int currentVmIndexWithDC3 = currentVmIndexListAllDC.get(datacenterIndex);
+		int datacenterSize = numOfVmsListAllDC.get(datacenterIndex);
+		int combinedDC3Size = datacenterSize + numOfVmsListAllDC.get(2);  // number of vms in datacenter 1/2 + datacenter 3
+
+		if (lastCloudletArrivalTime == currentSimulationTime) { // if the current cloudlet (from datacenter 1/2) arrives at the same time as the last cloudlet
+			boolean datacenterFree = isDatacenterFree(datacenter, lastVmIdList);
+			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
+
+			if (datacenterFree == false && datacenter3Free == true) {
+				cloudlet.setJobId(3);  // if datacenter 1 or 2 isn't free but datacenter 3 is then execute the cloudlet in datacenter 3 
+			}
+
+			// if datacenter 1 or 2 and datacenter 3 is busy pick the vm with the least remaining work 
+			else if (datacenterFree == false && datacenter3Free == false) { 
+				roundRobin(cloudlet, datacenterIndex, currentVmIndexListAllDC, currentVmIndexWithDC3, datacenterSize, combinedDC3Size);
+			}
+		}
+
+		else { // if the current cloudlet (from datacenter 1/2) arrives at a different time than the last cloudlet
+			boolean datacenterFree  = isDatacenterFree2(datacenter);
+			boolean datacenter3Free = isDatacenter3Free(datacenter3, lastVmIdListDC3, currentSimulationTime, lastCloudletArrivalTimeDC3);
+
+			if (datacenterFree == false && datacenter3Free == true) {
+				cloudlet.setJobId(3);  
+			}
+
+			else if (datacenterFree == false && datacenter3Free == false) { 				
+				roundRobin(cloudlet, datacenterIndex, currentVmIndexListAllDC, currentVmIndexWithDC3, datacenterSize, combinedDC3Size);
+			}
+		}
+	}
+
+	public static void roundRobin (Cloudlet cloudlet, int cloudletJobId, List<Integer> currentVmIndexAllDC,
+	 int currentVmIndexWithDC3, int datacenterSize, int combinedDC3Size) {
+
+		if (currentVmIndexWithDC3 >= datacenterSize) {
+			cloudlet.setJobId(3);
+		}
+
+		currentVmIndexWithDC3 = (currentVmIndexWithDC3 + 1) % combinedDC3Size;
+		currentVmIndexAllDC.set(cloudletJobId, currentVmIndexWithDC3);
 	}
 
 	/**
@@ -615,26 +562,11 @@ public class DatacenterBrokerUtility {
 	}
 
 	/**
-	 * Prints the total cloudlet mips in a datacenter. This method considers that subsequent cloudlets may be arriving at the 
-	 * same time. 
-	 * 
-	 * @param datacenter the datacenter that will have its cloudlet mips printed out 
-	 * @param lastVmIdList the list of the last vm ids to help print the cloudlet mips in a datacenter 
-	 * @param lastCloudletMipsList the list of the last cloudlet mips to help print the cloudlet mips in a datacenter 
-	 */
-	public static void printTotalCloudletMipsInDCSubsequent(Datacenter datacenter, List<Long> lastVmIdList, 
-	List<Long> lastCloudletMipsList) {
-
-		System.out.println("The total number of mips in DC #" + datacenter.getId() + " is: "
-		+ DatacenterBrokerUtility.getTotalCloudletMipsInDC2(datacenter, lastVmIdList, lastCloudletMipsList));
-	}
-
-	/**
 	 * Prints the total cloudlet mips in every vm in a datacenter. 
 	 * 
 	 * @param datacenter the datacenter that will have all of its vm's cloudlet mips printed out 
 	 */
-	public static void printTotalCloudletMipsInAllVmsInDCNonSubsequent(Datacenter datacenter) {
+	public static void printTotalCloudletMipsInAllVmsInDC(Datacenter datacenter) {
 		
 		List<Vm> vmList = getVmList(datacenter);
 
@@ -643,17 +575,6 @@ public class DatacenterBrokerUtility {
 			System.out.println("The total number of mips to execute for Vm #" + vm.getId()
 					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips(vm));
 		}
-	}
-
-	/**
-	 * Prints the total cloudlet mips in a datacenter. 
-	 * 
-	 * @param datacenter the datacenter that will have its cloudlet mips printed out 
-	 */
-	public static void printTotalCloudletMipsInDCNonSubsequent(Datacenter datacenter) {
-		
-		System.out.println("The total number of mips in DC #" + datacenter.getId() + " is: "
-		+ DatacenterBrokerUtility.getTotalCloudletMipsInDC(datacenter));
 	}
 
 	/**
@@ -684,51 +605,19 @@ public class DatacenterBrokerUtility {
 			}
 	
 			else {
-				printTotalCloudletMipsInAllVmsInDCNonSubsequent(datacenter);
+				printTotalCloudletMipsInAllVmsInDC(datacenter);
 			}
 		}	
 	}
 
 	/**
-	 * Prints the total cloudlet mips in all datacenters. This method considers that subsequent cloudlets may be arriving at the 
-	 * same time. 
-	 * 
-	 * 
- 	 * @param currentSimulationTime the current simulation time (when the cloudlet arrived)
-	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times to help calculate the cloudlet mips in all datacenters 
-	 * @param lastCloudletMipsListAllDC the list of the last cloudlet mips to help calculate the cloudlet mips in all datacenters  
-	 * @param lastVmIdListAllDC the list of the last vm ids to help calculate the cloudlet mips in all datacenters 
-	 * @param datacenterList the list of all datacenters 
-	 */
-	public static void printTotalCloudletMipsInAllDC(double currentSimulationTime, List<Double> lastCloudletArrivalTimeAllDC,
-	List<List<Long>> lastCloudletMipsListAllDC, List<List<Long>> lastVmIdListAllDC, List<Datacenter> datacenterList) {
-		
-		System.out.println();
-
-		for (int i = 0; i < datacenterList.size(); i++) {
-			Datacenter datacenter = datacenterList.get(i); 
-			double lastCloudletArrivalTime = lastCloudletArrivalTimeAllDC.get(i);
-			List<Long> lastVmIdList = lastVmIdListAllDC.get(i);
-			List<Long> lastCloudletMipsList = lastCloudletMipsListAllDC.get(i); 
-
-			if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
-				printTotalCloudletMipsInDCSubsequent(datacenter, lastVmIdList, lastCloudletMipsList);
-			}
-
-			else {
-				printTotalCloudletMipsInDCNonSubsequent(datacenter);
-			}
-		}	
-	}
-
-	/**
-	 * Prints the datacenter that was selected (datacenter with the least/most remaining work or selected as apart of a cycle)
+	 * Prints the datacenter that was selected (datacenter with the least remaining work or selected as apart of a cycle)
 	 * to have one of its vms execute a cloudlet. This method must be called after 
-	 * {@link #determineIfCloudletGoesToDC3BestFit(double, Cloudlet, List, List, List, List)}. 
+	 * {@link #determineIfCloudletGoesToDC3BestMap(double, Cloudlet, List, List, List, List)}. 
 	 * 
 	 * @param cloudletJobId the job id of the cloudlet to determine which datacenter was selected
 	 * 
-	 * @see #determineIfCloudletGoesToDC3BestFit(double, Cloudlet, List, List, List, List)
+	 * @see #determineIfCloudletGoesToDC3BestMap(double, Cloudlet, List, List, List, List)
 	 */
 	public static void printSelectedDC(long cloudletJobId) {
 		System.out.println("Datacenter #" + cloudletJobId + " was selected to have one of its vms " + 
