@@ -168,6 +168,8 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
 
         Vm mappedVm = Vm.NULL;
 
+        double simulationTime = getSimulation().clock();
+
         System.out.println("*********CLOUDLET JOB IS: " + cloudlet.getJobId());
 
         if (cloudlet.getJobId() == 1) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
@@ -202,29 +204,9 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             if (mappedVm != Vm.NULL) { // if there is a free vm
                 lastVmIdDC1 = mappedVm.getId(); // keep track of the id of a mapped vm
                 System.out.println("A free Vm was found");
-                System.out.println("The total waiting cloudlet mips is: "
-                        + DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
-                System.out.println("The total executing cloudlet mips is: "
-                        + DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
-                System.out.println("The number of cloudlets executing is: "
-                        + DatacenterBrokerUtility.getNumOfExecutingCloudlets(mappedVm));
             }
             else { // if there is no free vm
                 System.out.println("No free vm was found so round robin is done.");
-
-                if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
-					for (int i = 0; i < datacenterVmList.size(); i++) {
-						System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
-						+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(datacenterVmList.get(i), lastVmIdListDC1, lastCloudletMipsListDC1));
-					}
-                }
-                
-                else {
-                    for (int i = 0; i < datacenterVmList.size(); i++) {
-                        System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
-                                + " is: " + DatacenterBrokerUtility.getTotalCloudletMips(datacenterVmList.get(i)));
-                    }
-                }
 
                 copyCurrentVmIndexDC1 = currentVmIndexDC1;
                 mappedVm = datacenterVmList.get(currentVmIndexDC1);
@@ -271,29 +253,9 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             if (mappedVm != Vm.NULL) { // if there is a free vm
                 lastVmIdDC2 = mappedVm.getId(); // keep track of the id of a mapped vm
                 System.out.println("A free Vm was found");
-                System.out.println("The total waiting cloudlet mips is: "
-                        + DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
-                System.out.println("The total executing cloudlet mips is: "
-                        + DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
-                System.out.println("The number of cloudlets executing is: "
-                        + DatacenterBrokerUtility.getNumOfExecutingCloudlets(mappedVm));
             }
             else { // if there is no free vm
                 System.out.println("No free vm was found so round robin is done.");
-
-                if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
-                    for (int i = 0; i < datacenterVmList.size(); i++) {
-                        System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
-                        + " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(datacenterVmList.get(i), lastVmIdListDC2, lastCloudletMipsListDC2));
-                    }
-                }
-                
-                else {
-                    for (int i = 0; i < datacenterVmList.size(); i++) {
-                        System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
-                                + " is: " + DatacenterBrokerUtility.getTotalCloudletMips(datacenterVmList.get(i)));
-                    }
-                }
 
                 copyCurrentVmIndexDC2 = currentVmIndexDC2;
                 mappedVm = datacenterVmList.get(currentVmIndexDC2);

@@ -24,8 +24,6 @@ import org.cloudbus.cloudsim.vms.Vm;
  */
 public class DatacenterBrokerUtility {
 
-	static double currentSimulationTime = 0;
-
 	/**
 	 * Gets the list of all vms in a given datacenter.
 	 * 
@@ -81,14 +79,16 @@ public class DatacenterBrokerUtility {
 	 * currently executing cloudlets in a given vm.
 	 * 
 	 * @param vm the vm to get the total mips of all waiting cloudlets and remaining
-	 *           mips of executing cloudlets
+	 * mips of executing cloudlets
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * 
 	 * @return the total mips of all waiting and remaining mips of executing
 	 *         cloudlets in a vm
 	 */
-	public static long getTotalCloudletMips(Vm vm) {
+	public static long getTotalCloudletMips(Vm vm, double currentSimulationTime) {
 
-		return getTotalWaitingCloudletMips(vm) + getTotalExecutingCloudletMips(vm);
+		return getTotalWaitingCloudletMips(vm, currentSimulationTime) +
+		 getTotalExecutingCloudletMips(vm, currentSimulationTime);
 	}
 
 	/**
@@ -99,6 +99,7 @@ public class DatacenterBrokerUtility {
 	 * from those "yet to be mapped" cloudlets and adds them to the total.
 	 * 
 	 * @param vm the vm to get the total mips of all waiting cloudlets and remaining mips of executing cloudlets
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * @param lastVmIdList the list of last vm ids that mapped a cloudlet
 	 * @param lastCloudletMipsList the mips of the last cloudlet that arrived
 	 * 
@@ -107,7 +108,7 @@ public class DatacenterBrokerUtility {
 	 * @return the total mips of all waiting and remaining mips of executing
 	 *         cloudlets in a vm
 	 */
-	public static long getTotalCloudletMips2(Vm vm, List<Long> lastVmIdList, List<Long> lastCloudletMipsList) {
+	public static long getTotalCloudletMips2(Vm vm, double currentSimulationTime, List<Long> lastVmIdList, List<Long> lastCloudletMipsList) {
 
 		long totalCloudletMips = 0;
 		/*
@@ -121,7 +122,7 @@ public class DatacenterBrokerUtility {
 			}
 		}
 
-		return getTotalCloudletMips(vm) + totalCloudletMips;
+		return getTotalCloudletMips(vm, currentSimulationTime) + totalCloudletMips;
 	}
 
 	/**
@@ -153,24 +154,21 @@ public class DatacenterBrokerUtility {
 		long totalCloudletMips = 0;
 
 		if (lastCloudletArrivalTime == currentSimulationTime) {
-			totalCloudletMips = getTotalCloudletMips2(vm, lastVmIdList, lastCloudletMipsList);
+			totalCloudletMips = getTotalCloudletMips2(vm, currentSimulationTime, lastVmIdList, lastCloudletMipsList);
 		}
 
 		else {
-			totalCloudletMips = getTotalCloudletMips(vm);
+			totalCloudletMips = getTotalCloudletMips(vm, currentSimulationTime);
 		}
 
 		return totalCloudletMips;
-	}
-
-	public static void setSimulationTime(double simulationTime) {
-		currentSimulationTime = simulationTime;
 	}
 
 	/**
 	 * Gets the total mips of all waiting cloudlets in a vm.
 	 * 
 	 * @param vm the vm to get the total mips of all waiting cloudlets
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * 
 	 * @see #getTotalExecutingCloudletMips(Vm)
 	 * @see CloudletSchedulerAbstract#getCurrentMipsShare()
@@ -178,7 +176,7 @@ public class DatacenterBrokerUtility {
 	 * 
 	 * @return the total mips of all waiting cloudlets in a vm
 	 */
-	public static long getTotalWaitingCloudletMips(Vm vm) {
+	public static long getTotalWaitingCloudletMips(Vm vm, double currentSimulationTime) {
 
 		long totalWaitingCloudletMips = 0;
 		List<Double> mipsShare = new ArrayList<>();
@@ -200,6 +198,7 @@ public class DatacenterBrokerUtility {
 	 * Gets the total mips of all executing cloudlets in a vm. 
 	 * 
 	 * @param vm the vm to get the total mips of all executing cloudlets
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * 
 	 * @see #getTotalWaitingCloudletMips(Vm)
 	 * @see CloudletSchedulerAbstract#getCurrentMipsShare()
@@ -207,7 +206,7 @@ public class DatacenterBrokerUtility {
 	 * 
 	 * @return the total mips of all executing cloudlets in a vm
 	 */
-	public static long getTotalExecutingCloudletMips(Vm vm) {  	
+	public static long getTotalExecutingCloudletMips(Vm vm, double currentSimulationTime) {  	
 
 		long totalExecutingCloudletMips = 0;
 		List<Double> mipsShare = new ArrayList<>();
@@ -355,13 +354,14 @@ public class DatacenterBrokerUtility {
 	 * Gets the vm with the least remaining work. 
 	 * 
 	 * @param vmList the list of all vms in a datacenter 
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * 
 	 * @return the vm with the least remaining work 
 	 */
-	public static Vm getVmWithLeastReaminingWork(List<Vm> vmList) {
+	public static Vm getVmWithLeastReaminingWork(List<Vm> vmList, double currentSimulationTime) {
 		Vm leastRemainingVm = vmList
 			.stream()
-			.min(Comparator.comparingLong(vm -> getTotalCloudletMips(vm))) // select the vm with the smallest total cloudlet mips
+			.min(Comparator.comparingLong(vm -> getTotalCloudletMips(vm, currentSimulationTime))) // select the vm with the smallest total cloudlet mips
 			.orElse(Vm.NULL);
 		return leastRemainingVm;
 	}
@@ -371,15 +371,17 @@ public class DatacenterBrokerUtility {
 	 * arriving at the same time. 
 	 * 
 	 * @param vmList the list of all vms in a datacenter 
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * @param lastVmIdList the list of the last vm ids to get the vm with the least remaining work 
 	 * @param lastCloudletMipsList the list of the last cloudlet mips to get the vm with the least remaining work
 	 * 
 	 * @return the vm with the least remaining work 
 	 */
-	public static Vm getVmWithLeastReaminingWorkSubsequent(List<Vm> vmList, List<Long> lastVmIdList, List<Long> lastCloudletMipsList) {
+	public static Vm getVmWithLeastReaminingWorkSubsequent(List<Vm> vmList, double currentSimulationTime, 
+	 List<Long> lastVmIdList, List<Long> lastCloudletMipsList) {
 		Vm leastRemainingVm = vmList
 			.stream()
-			.min(Comparator.comparingLong(vm -> getTotalCloudletMips2(vm,
+			.min(Comparator.comparingLong(vm -> getTotalCloudletMips2(vm, currentSimulationTime,
 				lastVmIdList, lastCloudletMipsList))) // select the vm with the smallest total cloudlet mips
 			.orElse(Vm.NULL);
 		return leastRemainingVm;
@@ -402,11 +404,12 @@ public class DatacenterBrokerUtility {
 		Vm leastRemainingVm = null;
 
 		if (lastCloudletArrivalTime == currentSimulationTime) { 
-			leastRemainingVm = getVmWithLeastReaminingWorkSubsequent(vmList, lastVmIdList, lastCloudletMipsList);
+			leastRemainingVm = getVmWithLeastReaminingWorkSubsequent(vmList, currentSimulationTime, 
+			 lastVmIdList, lastCloudletMipsList);
 		}
 
 		else {
-			leastRemainingVm = getVmWithLeastReaminingWork(vmList);
+			leastRemainingVm = getVmWithLeastReaminingWork(vmList, currentSimulationTime);
 		}	
 
 		return leastRemainingVm;
@@ -454,11 +457,11 @@ public class DatacenterBrokerUtility {
 			// if datacenter 1 or 2 and datacenter 3 is busy pick the vm with the least remaining work 
 			else if (datacenterFree == false && datacenter3Free == false) { 
 
-				Vm leastRemainingVm = getVmWithLeastReaminingWorkSubsequent(vmList, lastVmIdList, lastCloudletMipsList);
+				Vm leastRemainingVm = getVmWithLeastReaminingWorkSubsequent(vmList, currentSimulationTime, lastVmIdList, lastCloudletMipsList);
 				Vm leastRemainingVmDC3 = getVmWithLeastReaminingWorkForDC3(vmListDC3, currentSimulationTime, lastVmIdListDC3,
 					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
 				
-				long leastRemainingVmMips = getTotalCloudletMips2(leastRemainingVm, lastVmIdList, lastCloudletMipsList);
+				long leastRemainingVmMips = getTotalCloudletMips2(leastRemainingVm, currentSimulationTime, lastVmIdList, lastCloudletMipsList);
 				long leastRemainingVmMipsDC3 = getTotalCloudletMipsForDC3(leastRemainingVmDC3, currentSimulationTime, lastVmIdListDC3,
 					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
 
@@ -479,11 +482,11 @@ public class DatacenterBrokerUtility {
 			}
 
 			else if (datacenterFree == false && datacenter3Free == false) { 				
-				Vm leastRemainingVm = getVmWithLeastReaminingWork(vmList);
+				Vm leastRemainingVm = getVmWithLeastReaminingWork(vmList, currentSimulationTime);
 				Vm leastRemainingVmDC3 = getVmWithLeastReaminingWorkForDC3(vmListDC3, currentSimulationTime, lastVmIdListDC3,
 					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
 				
-				long leastRemainingVmMips = getTotalCloudletMips(leastRemainingVm);
+				long leastRemainingVmMips = getTotalCloudletMips(leastRemainingVm, currentSimulationTime);
 				long leastRemainingVmMipsDC3 = getTotalCloudletMipsForDC3(leastRemainingVmDC3, currentSimulationTime, lastVmIdListDC3,
 					lastCloudletArrivalTimeDC3, lastCloudletMipsListDC3);
 
@@ -588,10 +591,11 @@ public class DatacenterBrokerUtility {
 	 * same time. 
 	 * 
 	 * @param datacenter the datacenter that will have all of its vm's cloudlet mips printed out 
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 * @param lastVmIdList the list of the last vm ids to help print the cloudlet mips in every vm in a datacenter
 	 * @param lastCloudletMipsList the list of the last cloudlet mips to help print the cloudlet mips in every vm in a datacenter 
 	 */
-	public static void printTotalCloudletMipsInAllVmsInDCSubsequent(Datacenter datacenter, List<Long> lastVmIdList, 
+	public static void printTotalCloudletMipsInAllVmsInDCSubsequent(Datacenter datacenter, double currentSimulationTime, List<Long> lastVmIdList, 
 	List<Long> lastCloudletMipsList) {
 
 		List<Vm> vmList = getVmList(datacenter);
@@ -599,7 +603,7 @@ public class DatacenterBrokerUtility {
 		for (int i = 0; i < vmList.size(); i++) {
 			Vm vm = vmList.get(i);
 			System.out.println("The total number of mips to execute for Vm #" + vm.getId()
-					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(vm, lastVmIdList, lastCloudletMipsList));
+					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(vm, currentSimulationTime, lastVmIdList, lastCloudletMipsList));
 		}
 	}
 
@@ -607,15 +611,16 @@ public class DatacenterBrokerUtility {
 	 * Prints the total cloudlet mips in every vm in a datacenter. 
 	 * 
 	 * @param datacenter the datacenter that will have all of its vm's cloudlet mips printed out 
+	 * @param currentSimulationTime the current simulation time to update cloudlet processing
 	 */
-	public static void printTotalCloudletMipsInAllVmsInDC(Datacenter datacenter) {
+	public static void printTotalCloudletMipsInAllVmsInDC(Datacenter datacenter, double currentSimulationTime) {
 		
 		List<Vm> vmList = getVmList(datacenter);
 
 		for (int i = 0; i < vmList.size(); i++) {
 			Vm vm = vmList.get(i);
 			System.out.println("The total number of mips to execute for Vm #" + vm.getId()
-					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips(vm));
+					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips(vm, currentSimulationTime));
 		}
 	}
 
@@ -643,11 +648,11 @@ public class DatacenterBrokerUtility {
 			System.out.println("DC #" + datacenter.getId() + ":");
 
 			if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
-				printTotalCloudletMipsInAllVmsInDCSubsequent(datacenter, lastVmIdList, lastCloudletMipsList);
+				printTotalCloudletMipsInAllVmsInDCSubsequent(datacenter, currentSimulationTime, lastVmIdList, lastCloudletMipsList);
 			}
 	
 			else {
-				printTotalCloudletMipsInAllVmsInDC(datacenter);
+				printTotalCloudletMipsInAllVmsInDC(datacenter, currentSimulationTime);
 			}
 		}	
 	}

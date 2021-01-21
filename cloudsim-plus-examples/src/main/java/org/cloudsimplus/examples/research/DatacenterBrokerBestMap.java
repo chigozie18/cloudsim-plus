@@ -142,6 +142,8 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 
 		Vm mappedVm = Vm.NULL;
 
+		double simulationTime = getSimulation().clock();
+
 		System.out.println("*********CLOUDLET JOB IS: " + cloudlet.getJobId());
 
 		if (cloudlet.getJobId() == 1) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
@@ -178,12 +180,6 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 				// keep track of the id of a mapped vm (a vm with the least remaining work in this case)
 				lastVmIdDC1 = mappedVm.getId(); 
 				System.out.println("A free Vm was found");
-				System.out.println("The total waiting cloudlet mips is: "
-						+ DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm)); 
-				System.out.println("The total executing cloudlet mips is: "
-						+ DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
-				System.out.println("The number of cloudlets executing is: "
-						+ DatacenterBrokerUtility.getNumOfExecutingCloudlets(mappedVm));
 			}
 
 			else { // if there is no free vm
@@ -198,29 +194,18 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 				if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
-					for (int i = 0; i < datacenterVmList.size(); i++) {
-						System.out.println("The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
-						+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(datacenterVmList.get(i), lastVmIdListDC1, lastCloudletMipsListDC1));
-					}
-
 					mappedVm = datacenterVmList
 						.stream()
 						.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips2(vm,
-							lastVmIdListDC1, lastCloudletMipsListDC1))) // select the vm with the smallest total cloudlet mips
+							simulationTime, lastVmIdListDC1, lastCloudletMipsListDC1))) // select the vm with the smallest total cloudlet mips
 						.orElse(Vm.NULL);
 				}
 
 				else {
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
-					for (int i = 0; i < datacenterVmList.size(); i++) {
-						System.out.println("The total number of mips to execute for Vm #"
-								+ datacenterVmList.get(i).getId() + " is: "
-								+ DatacenterBrokerUtility.getTotalCloudletMips(datacenterVmList.get(i)));
-					}
-
 					mappedVm = datacenterVmList.stream()
-							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm))) 
+							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm, simulationTime))) 
 							.orElse(Vm.NULL);
 				}
 				// keep track of the id of a mapped vm (a vm with the least remaining work in this case)
@@ -242,11 +227,6 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 				// if a vm in this datacenter is free then assign the cloudlet to that vm
 				System.out.println("Subsequent cloudlet arriving at the same time");
 
-				System.out.println("The ids in the last vm id list are ");
-				for (int i = 0; i < lastVmIdListDC2.size(); i++) {
-					System.out.println(lastVmIdListDC2.get(i));
-				}
-
 				mappedVm = datacenterVmList.stream()
 						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
 								&& !lastVmIdListDC2.contains(vm.getId())) 
@@ -267,14 +247,6 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 			if (mappedVm != Vm.NULL) { // if there is a free vm
 				lastVmIdDC2 = mappedVm.getId();
 				System.out.println("A free Vm was found");
-				System.out.println("The total waiting cloudlet mips is: "
-						+ DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
-				System.out.println("The total executing cloudlet mips is: "
-						+ DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
-				System.out.println("The number of cloudlets executing is: "
-						+ DatacenterBrokerUtility.getNumOfExecutingCloudlets(mappedVm));
-				System.out.println("The number of waiting cloudlets is: "
-						+ DatacenterBrokerUtility.getNumOfWaitingCloudlets(mappedVm));
 			}
 
 			else { // if there is no free vm
@@ -283,48 +255,20 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
-					for (int i = 0; i < datacenterVmList.size(); i++) {
-						System.out.println(
-								"The total number of mips to execute for Vm #" + datacenterVmList.get(i).getId()
-								+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(
-								datacenterVmList.get(i), lastVmIdListDC2, lastCloudletMipsListDC2));
-					}
 					mappedVm = datacenterVmList.stream()
 							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips2(vm,
-									lastVmIdListDC2, lastCloudletMipsListDC2))) /* select the vm with the shortest total
+									simulationTime, lastVmIdListDC2, lastCloudletMipsListDC2))) /* select the vm with the shortest total
 																				 cloudlet mips */
 							.orElse(Vm.NULL);
-					System.out.println("The number of waiting cloudlets of the mapped vm is: "
-							+ DatacenterBrokerUtility.getNumOfWaitingCloudlets(mappedVm));
-					System.out.println("The number of executing cloudlets of the mapped vm is: "
-							+ DatacenterBrokerUtility.getNumOfExecutingCloudlets(mappedVm));
-					System.out.println("The total waiting cloudlet mips of the mapped vm is: "
-							+ DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
-					System.out.println("The total executing cloudlet mips of the mapped vm is: "
-							+ DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
-
 				}
 
 				else {
 
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
-					for (int i = 0; i < datacenterVmList.size(); i++) {
-						System.out.println("The total number of mips to execute for Vm #"
-								+ datacenterVmList.get(i).getId() + " is: "
-								+ DatacenterBrokerUtility.getTotalCloudletMips(datacenterVmList.get(i)));
-					}
 					mappedVm = datacenterVmList.stream()
-							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm))) 
+							.min(Comparator.comparingLong(vm -> DatacenterBrokerUtility.getTotalCloudletMips(vm, simulationTime))) 
 							.orElse(Vm.NULL);
-					System.out.println("The number of waiting cloudlets of the mapped vm is: "
-							+ DatacenterBrokerUtility.getNumOfWaitingCloudlets(mappedVm));
-					System.out.println("The number of executing cloudlets of the mapped vm is: "
-							+ DatacenterBrokerUtility.getNumOfExecutingCloudlets(mappedVm));
-					System.out.println("The total waiting cloudlet mips of the mapped vm is: "
-							+ DatacenterBrokerUtility.getTotalWaitingCloudletMips(mappedVm));
-					System.out.println("The total executing cloudlet mips of the mapped vm is: "
-							+ DatacenterBrokerUtility.getTotalExecutingCloudletMips(mappedVm));
 				}
 				lastVmIdDC2 = mappedVm.getId();
 			}
