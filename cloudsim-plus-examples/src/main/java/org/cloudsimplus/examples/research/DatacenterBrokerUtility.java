@@ -512,6 +512,8 @@ public class DatacenterBrokerUtility {
 	 * @param lastCloudletArrivalTimeAllDC the list of the last cloudlet arrival times in all datacenters 
 	 * @param lastVmIdListAllDC the list of the last vm ids in all datacenters 
 	 * @param datacenterList the list of all datacenters 
+	 * @param currentVmIndexListAllDC the list containing the round robin positions 
+	 * @param numOfVmsListAllDC the list containing the number of vms in all datacenters
 	 * 
 	 */
 	public static void determineIfCloudletGoesToDC3RoundRobinMap(double currentSimulationTime, Cloudlet cloudlet, List<Double> lastCloudletArrivalTimeAllDC,
@@ -529,7 +531,6 @@ public class DatacenterBrokerUtility {
 
 		int currentVmIndexWithDC3 = currentVmIndexListAllDC.get(datacenterIndex);
 		int datacenterSize = numOfVmsListAllDC.get(datacenterIndex);
-		int combinedDC3Size = datacenterSize + numOfVmsListAllDC.get(2);  // number of vms in datacenter 1/2 + datacenter 3
 
 		if (lastCloudletArrivalTime == currentSimulationTime) { // if the current cloudlet (from datacenter 1/2) arrives at the same time as the last cloudlet
 			boolean datacenterFree = isDatacenterFree(datacenter, lastVmIdList);
@@ -539,9 +540,9 @@ public class DatacenterBrokerUtility {
 				cloudlet.setJobId(3);  // if datacenter 1 or 2 isn't free but datacenter 3 is then execute the cloudlet in datacenter 3 
 			}
 
-			// if datacenter 1 or 2 and datacenter 3 is busy pick the vm with the least remaining work 
+			// if datacenter 1 or 2 and datacenter 3 is busy cyclically pick the next vm
 			else if (datacenterFree == false && datacenter3Free == false) { 
-				roundRobin(cloudlet, datacenterIndex, currentVmIndexListAllDC, currentVmIndexWithDC3, datacenterSize, combinedDC3Size);
+				selectDC3IfTurnInRoundRobin(cloudlet, currentVmIndexWithDC3, datacenterSize);
 			}
 		}
 
@@ -554,20 +555,85 @@ public class DatacenterBrokerUtility {
 			}
 
 			else if (datacenterFree == false && datacenter3Free == false) { 				
-				roundRobin(cloudlet, datacenterIndex, currentVmIndexListAllDC, currentVmIndexWithDC3, datacenterSize, combinedDC3Size);
+				selectDC3IfTurnInRoundRobin(cloudlet, currentVmIndexWithDC3, datacenterSize);
 			}
 		}
 	}
 
-	public static void roundRobin (Cloudlet cloudlet, int cloudletJobId, List<Integer> currentVmIndexAllDC,
-	 int currentVmIndexWithDC3, int datacenterSize, int combinedDC3Size) {
+	/**
+	 * Decides if it's datacenter 3's turn in round robin. That is if datacenter 3 will have its vms cyclically 
+	 * selected to execute a cloudlet. If a cloudlet is selected to be executed in datacenter 3, its job id 
+	 * will change from 1/2 to 3. 
+	 * 
+	 * @param cloudlet the cloudlet which may be executed in a vm in datacenter 3
+	 * @param currentVmIndexWithDC3 the vm position in round robin (datacenter 1/2 vms + datacenter 3 vms)
+	 * @param datacenterSize the size of datacenter 1/2
+	 */
+	public static void selectDC3IfTurnInRoundRobin (Cloudlet cloudlet, int currentVmIndexWithDC3, int datacenterSize) {
 
-		if (currentVmIndexWithDC3 >= datacenterSize) {
+		/** Image we have 4 vms in datacenter 1, 5 vm in datacenter 2 and 1 vm in datacenter 3. This means 
+		 * for DatacenterBrokerBestMap2 and DatacenterBrokerRoundRobin2 we'd have two instances of round robin. 
+		 * One will includes vms from datacenter 1 and 3 and the other from datacenter 2 and 3. 
+		 * 
+		 * So it'll look like this:
+		 * 
+		 * 1st Round Robin (DC 1 & DC 3): 
+		 * 
+		 * DC 1: Vm 1, Vm 2, Vm 3, Vm 4 (Size: 4)
+		 * DC 2: Vm 10 (Size: 1)
+		 * 
+		 * Combined List: Vm 1, Vm 2, Vm 3, Vm 4, Vm 10  (Size: 5)
+		 * 
+		 * 2nd Round Robin (DC 2 & DC 3): 
+		 * 
+		 * DC 2: Vm 5, Vm 6, Vm 7, Vm 8, Vm 9 (Size: 5)
+		 * DC 3: Vm 10 (Size: 1)
+		 * 
+		 * Combined List: Vm 5, Vm 6, Vm 7, Vm 8, Vm 9, Vm 10 (Size: 6)
+		 * 
+		 * So whenever we reach a point where the position (currentVmIndexWithDC3) in our combined list 
+		 * is greater than or equal to the datacenter size (which is the number of vms in either datacenter 1/2) 
+		 * then we know we're past the last vm in datacenter 1/2 so we should be in datacenter 3. 
+		 * Say our position was 4 in our combined list for the first round robin. We'd know that 
+		 * the datacenter size in DC 1 is 4 but the position/index of the last vm is 3 since our index
+		 * start at 0. So once we're at 4 (the datacenter size), we must've passed all vms in combined the list 
+		 * that were from DC 1 and now we're on vms from DC 3. So we change the cloudlet id so that the vm gets
+		 * executed in datacenter 3. 
+		 * 
+		 */
+		if (currentVmIndexWithDC3 >= datacenterSize) {  
 			cloudlet.setJobId(3);
 		}
+	}
 
-		currentVmIndexWithDC3 = (currentVmIndexWithDC3 + 1) % combinedDC3Size;
-		currentVmIndexAllDC.set(cloudletJobId, currentVmIndexWithDC3);
+	/**
+	 * Performs round robin. This method returns the index of the vm to be mapped before the index 
+	 * is cyclically incremented by 1. 
+	 * 
+	 * @param oldCloudletJobId the job id of the old cloudlet 
+	 * @param newCloudletJobId the job id of the new cloudlet 
+	 * @param numOfVmsListAllDC the list containing the number of vms in all datacenters		
+	 * @param currentVmIndexListAllDC the list containing the round robin positions
+	 * 
+	 * @return the index of the vm to be mapped
+	 * 
+	 */
+	public static int roundRobin (int oldCloudletJobId, int newCloudletJobId, List<Integer> numOfVmsListAllDC, List<Integer> currentVmIndexListAllDC) {
+
+		int datacenterIndex = (int) oldCloudletJobId - 1;
+		int datacenterSize = numOfVmsListAllDC.get(datacenterIndex);
+		int combinedDC3Size = datacenterSize + numOfVmsListAllDC.get(2);  // number of vms in datacenter 1/2 + datacenter 3
+		
+		int currentVmIndexWithDC3 = currentVmIndexListAllDC.get(datacenterIndex);  
+
+		int newCurrentVmIndexWithDC3 = (currentVmIndexWithDC3 + 1) % combinedDC3Size;  // cyclically increment the position of the vm to be mapped in round robin
+		currentVmIndexListAllDC.set(datacenterIndex, newCurrentVmIndexWithDC3);
+
+		if (newCloudletJobId == 3) {
+			currentVmIndexWithDC3 = currentVmIndexWithDC3 - datacenterSize;  // we make sure to get the correct index to properly map vms in datacenter 3
+		}
+
+		return currentVmIndexWithDC3;  
 	}
 
 	/**
@@ -581,7 +647,7 @@ public class DatacenterBrokerUtility {
 		System.out.println();
 		for (int i = 0; i < datacenterList.size(); i++) {
 			Datacenter datacenter = datacenterList.get(i);
-			System.out.println("The number of cloudlets executing in DC #" + datacenter.getId() + 
+			System.out.println("The number of cloudlets executing in DC " + datacenter.getId() + 
 			" is: " + getNumOfExecutingCloudletsInDC(datacenter));
 		}
 	}
@@ -602,7 +668,7 @@ public class DatacenterBrokerUtility {
 
 		for (int i = 0; i < vmList.size(); i++) {
 			Vm vm = vmList.get(i);
-			System.out.println("The total number of mips to execute for Vm #" + vm.getId()
+			System.out.println("The total number of mips to execute for Vm " + vm.getId()
 					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips2(vm, currentSimulationTime, lastVmIdList, lastCloudletMipsList));
 		}
 	}
@@ -619,7 +685,7 @@ public class DatacenterBrokerUtility {
 
 		for (int i = 0; i < vmList.size(); i++) {
 			Vm vm = vmList.get(i);
-			System.out.println("The total number of mips to execute for Vm #" + vm.getId()
+			System.out.println("The total number of mips to execute for Vm " + vm.getId()
 					+ " is: " + DatacenterBrokerUtility.getTotalCloudletMips(vm, currentSimulationTime));
 		}
 	}
@@ -645,7 +711,7 @@ public class DatacenterBrokerUtility {
 			List<Long> lastVmIdList = lastVmIdListAllDC.get(i);
 			List<Long> lastCloudletMipsList = lastCloudletMipsListAllDC.get(i); 
 
-			System.out.println("DC #" + datacenter.getId() + ":");
+			System.out.println("DC " + datacenter.getId() + ":");
 
 			if (lastCloudletArrivalTime == currentSimulationTime) { // if the next cloudlet arrives at the same time as the last cloudlet
 				printTotalCloudletMipsInAllVmsInDCSubsequent(datacenter, currentSimulationTime, lastVmIdList, lastCloudletMipsList);
@@ -667,8 +733,17 @@ public class DatacenterBrokerUtility {
 	 * @see #determineIfCloudletGoesToDC3BestMap(double, Cloudlet, List, List, List, List)
 	 */
 	public static void printSelectedDC(long cloudletJobId) {
-		System.out.println("Datacenter #" + cloudletJobId + " was selected to have one of its vms " + 
+		System.out.println("Datacenter " + cloudletJobId + " was selected to have one of its vms " + 
 			"execute a cloudlet.\n");  // the cloudlet job id is the same as the datacenter id 	
+	}
+
+		/**
+	 * Prints the cloudlet job ID message. 
+	 * 
+	 * @param oldCloudletJobId the job id of the cloudlet 
+	 */
+	public static void printCloudletJobIdMessage(long cloudletJobId) {
+		System.out.println("********* CLOUDLET JOB ID: " + cloudletJobId);
 	}
 
 	/**
@@ -677,8 +752,7 @@ public class DatacenterBrokerUtility {
 	 * @param oldCloudletJobId the old job id of the cloudlet 
 	 * @param newcloudletJobId the new job id of the cloudlet 
 	 */
-	public static void printCloudletJobIdMessage(long oldCloudletJobId, long newCloudletJobId) {
-
+	public static void printCloudletJobIdMessage2(long oldCloudletJobId, long newCloudletJobId) {
 		if (newCloudletJobId == 3) {
 			System.out.println("********* CLOUDLET JOB ID: " + newCloudletJobId + " (Was originally: " + oldCloudletJobId + ")");
 		}
@@ -689,14 +763,12 @@ public class DatacenterBrokerUtility {
 	}
 
 	/**
-	 * Prints the current datacenter index. 
+	 * Prints the index of the current vm mapped in round robin. 
 	 * 
-	 * @param cloudletJobId the job id of the cloudlet 
-	 * @param currentDCIndexAllDC the list of all current datacenter indexes
 	 */
-	public static void printCurrentDCIndex(long cloudletJobId, List<List<Integer>> currentDCIndexAllDC) {
-
-		int currentDCIndex = currentDCIndexAllDC.get((int) cloudletJobId - 1).get(0);
-		System.out.println("\nThe index of the current datacenter mapped in round robin is: " + currentDCIndex);
+	public static void printRoundRobinMessage(int newCloudletJobId, int currentVmIndexDC) {
+		/* the line below is just for printing to the console and makes sure that the index that's printed correspondes to the actual 
+		index of an arraylist (index starts at 0 and ends at arrayListSize - 1) */
+		System.out.println("The index of the current vm mapped in round robin in DC " + newCloudletJobId + " is: " + currentVmIndexDC);
 	}
 }

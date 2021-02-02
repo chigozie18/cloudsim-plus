@@ -83,6 +83,12 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 	 */
 	List<Long> lastVmIdListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
 
+    /**
+     * A list of all datacenter's lastVmIdList.
+     */
+    List<List<Long>> lastVmIdListAllDC = new ArrayList<List<Long>>(
+        Arrays.asList(lastVmIdListDC1, lastVmIdListDC2));
+
 	/**
 	 * Stores the mips of the last cloudlet that arrived in datacenter 1.
 	 */
@@ -110,6 +116,12 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 	 * cloudlets).
 	 */
 	List<Long> lastCloudletMipsListDC2 = new ArrayList<Long>(Arrays.asList((long) -2));
+
+    /**
+     * A list of all datacenter's lastCloudletMipsList.
+     */
+    List<List<Long>> lastCloudletMipsListAllDC = new ArrayList<List<Long>>(
+        Arrays.asList(lastCloudletMipsListDC1, lastCloudletMipsListDC2));
 
 	/**
 	 * Creates a DatacenterBroker object.
@@ -143,11 +155,25 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 		Vm mappedVm = Vm.NULL;
 
 		double simulationTime = getSimulation().clock();
+		List<Datacenter> datacenterList = getDatacenterList();
+		long cloudletJobId = cloudlet.getJobId();
+		
+		/*
+     	* Stores the last cloudlet's arrival time in all datacenters. This value is gotten
+     	* from the current simulation time when the last cloudlet arrived.
+     	*/
+		 List<Double> lastCloudletArrivalTimeAllDC = new ArrayList<Double>(Arrays.asList(lastCloudletArrivalTimeDC1,
+		 lastCloudletArrivalTimeDC2));
 
-		System.out.println("*********CLOUDLET JOB IS: " + cloudlet.getJobId());
+		DatacenterBrokerUtility.printCloudletJobIdMessage(cloudletJobId);
 
-		if (cloudlet.getJobId() == 1) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
-			Datacenter datacenter = getDatacenterList().get(0);
+		DatacenterBrokerUtility.printTotalCloudletMipsInAllVmsInAllDC(simulationTime,
+		lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, datacenterList);
+
+		DatacenterBrokerUtility.printNumOfExecutingCloudletsInAllDC(datacenterList);
+
+		if (cloudletJobId == 1) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
+			Datacenter datacenter = datacenterList.get(0);
 
 			List<Vm> datacenterVmList = DatacenterBrokerUtility.getVmList(datacenter);
 
@@ -157,22 +183,23 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 			 * subsequent cloudlets to a vm which was deemed to be "free" but is actually
 			 * not. The current simulation time is used to check when cloudlets arrive.
 			 */
-			if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
+			if (lastCloudletArrivalTimeDC1 == simulationTime) {
 				// if a vm in this datacenter is free then assign the cloudlet to that vm
 				System.out.println("Subsequent cloudlet arriving at the same time");
 				mappedVm = datacenterVmList.stream()
 						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
-								&& !lastVmIdListDC1.contains(vm.getId()))
+						&& DatacenterBrokerUtility.getNumOfWaitingCloudlets(vm) == 0 && !lastVmIdListDC1.contains(vm.getId()))
 						.findFirst() // return the first free vm if it exists
 						.orElse(Vm.NULL);
 			}
 
 			else {
 				mappedVm = datacenterVmList.stream()
-						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0).findFirst()
+						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
+						&& DatacenterBrokerUtility.getNumOfWaitingCloudlets(vm) == 0).findFirst()
 						.orElse(Vm.NULL);
-				lastVmIdListDC1.clear(); // a subsequent cloudlet arrived at a different time so clear the vm list
 				// a subsequent cloudlet arrived at a different time so clear the cloudlet mips list
+				lastVmIdListDC1.clear();
 				lastCloudletMipsListDC1.clear(); 
 			}
 
@@ -191,7 +218,7 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 				 * "yet to be mapped" cloudlets are considered when finding the vm with the
 				 * least remaining work.
 				 */
-				if (lastCloudletArrivalTimeDC1 == Double.parseDouble(getSimulation().clockStr())) {
+				if (lastCloudletArrivalTimeDC1 == simulationTime) {
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
 					mappedVm = datacenterVmList
@@ -211,32 +238,33 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 				// keep track of the id of a mapped vm (a vm with the least remaining work in this case)
 				lastVmIdDC1 = mappedVm.getId(); 
 			}
-			lastCloudletArrivalTimeDC1 = Double.parseDouble(getSimulation().clockStr());
+			lastCloudletArrivalTimeDC1 = simulationTime;
 			lastCloudletMipsListDC1.add(cloudlet.getLength());
 			lastVmIdListDC1.add(lastVmIdDC1);
 		}
 
-		if (cloudlet.getJobId() == 2) { // if the cloudlet's job id is 2 it will be executed in a vm in datacenter 2
-			Datacenter datacenter = getDatacenterList().get(1);
+		else if (cloudletJobId == 2) { // if the cloudlet's job id is 2 it will be executed in a vm in datacenter 2
+			Datacenter datacenter = datacenterList.get(1);
 
 			List<Vm> datacenterVmList = DatacenterBrokerUtility.getVmList(datacenter);
 
 			/* if subsequent cloudlets arrive at the same time then make sure it doesn't get
 			   mapped to the last vm used */
-			if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
+			if (lastCloudletArrivalTimeDC2 == simulationTime) {
 				// if a vm in this datacenter is free then assign the cloudlet to that vm
 				System.out.println("Subsequent cloudlet arriving at the same time");
 
 				mappedVm = datacenterVmList.stream()
 						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
-								&& !lastVmIdListDC2.contains(vm.getId())) 
+						&& DatacenterBrokerUtility.getNumOfWaitingCloudlets(vm) == 0 && !lastVmIdListDC2.contains(vm.getId())) 
 						.findFirst()
 						.orElse(Vm.NULL);
 			}
 
 			else {
 				mappedVm = datacenterVmList.stream()
-						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0) 
+						.filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
+						&& DatacenterBrokerUtility.getNumOfWaitingCloudlets(vm) == 0) 
 						.findFirst() 
 						.orElse(Vm.NULL);
 				lastVmIdListDC2.clear();
@@ -251,7 +279,7 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 
 			else { // if there is no free vm
 
-				if (lastCloudletArrivalTimeDC2 == Double.parseDouble(getSimulation().clockStr())) {
+				if (lastCloudletArrivalTimeDC2 == simulationTime) {
 
 					System.out.println("No free vm was found so one with the least remaining work was chosen.");
 
@@ -272,7 +300,7 @@ public class DatacenterBrokerBestMap extends DatacenterBrokerSimple {
 				}
 				lastVmIdDC2 = mappedVm.getId();
 			}
-			lastCloudletArrivalTimeDC2 = Double.parseDouble(getSimulation().clockStr());
+			lastCloudletArrivalTimeDC2 = simulationTime;
 			lastCloudletMipsListDC2.add(cloudlet.getLength());
 			lastVmIdListDC2.add(lastVmIdDC2);
 		}

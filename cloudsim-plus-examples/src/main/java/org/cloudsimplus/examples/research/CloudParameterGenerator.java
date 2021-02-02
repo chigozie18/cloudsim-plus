@@ -21,8 +21,8 @@ public class CloudParameterGenerator {
 
 	public static void main(String[] args) {
 
-		String filePath = localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Part1/Scenario1/Datacenter2_Cloudlets.csv";
-		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 300, 1, 5000, 15000, 1000, 0, 600, 2);
+		String filePath = localDirectory + "/cloudsim-plus-examples/Test_Data/Extra Scenarios/part1/Scenario2/Datacenter2_Cloudlets.csv";
+		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 1050, 1, 50, 800, 1000, 0, 1100, 2);
 		// For full utilization model cloudlets the last two parameters can ignored and can be any value hence the two zeros	
 	}
 
@@ -100,7 +100,7 @@ public class CloudParameterGenerator {
 	 * @param lengthMax the maximum length (in mips) a cloudlet can have 
 	 * @param size the size (in bytes) of all cloudlets
 	 * @param submissionDelayMin the minimum submission delay (in seconds) a cloudlet can have 
-	 * @param submissionDelayMax the maximum submission delay (in seconds)a cloudlet can have 
+	 * @param submissionDelayMax the maximum submission delay (in seconds) a cloudlet can have 
 	 * @param jobId the type of job this cloudlet belongs to
 	 */
 	public static void generateRandomCloudletParameters(String filePath, int cloudletNum, int pes, int lengthMin, int lengthMax, int size, int submissionDelayMin, 

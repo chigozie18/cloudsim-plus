@@ -51,7 +51,6 @@ public class CloudResults {
 		printAverageExecutionTime(finishedCloudlets);
 		printAverageArrivalTime(finishedCloudlets);
 		printAverageTurnaroundTime(finishedCloudlets);
-
 	}
 
 	/**

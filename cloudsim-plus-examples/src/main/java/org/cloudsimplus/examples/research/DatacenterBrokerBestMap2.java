@@ -219,7 +219,7 @@ public class DatacenterBrokerBestMap2 extends DatacenterBrokerSimple {
 		
 		long newCloudletJobId = cloudlet.getJobId();
 
-		DatacenterBrokerUtility.printCloudletJobIdMessage(oldCloudletJobId, newCloudletJobId);
+		DatacenterBrokerUtility.printCloudletJobIdMessage2(oldCloudletJobId, newCloudletJobId);
 		
 		DatacenterBrokerUtility.printTotalCloudletMipsInAllVmsInAllDC(simulationTime,
 		lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, datacenterList);

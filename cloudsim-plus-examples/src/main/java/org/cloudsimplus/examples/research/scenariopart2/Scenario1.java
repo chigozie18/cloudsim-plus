@@ -55,7 +55,6 @@ public class Scenario1 {
 		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts  
 		datacenter2 = CloudCreator.createDatacenter(simulation, hostList3, 1);  // creates a datacenter and it's hosts      
 
-		// List<Datacenter> datacenterList = new ArrayList<>(Arrays.asList(datacenter0, datacenter1, datacenter2));
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
 		broker0 = new DatacenterBrokerRoundRobinMap2(simulation); 
 
