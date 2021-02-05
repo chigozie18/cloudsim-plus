@@ -191,12 +191,12 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
 		List<Double> lastCloudletArrivalTimeAllDC = new ArrayList<Double>(Arrays.asList(lastCloudletArrivalTimeDC1,
 		lastCloudletArrivalTimeDC2));
 
-		DatacenterBrokerUtility.printCloudletJobIdMessage(cloudletJobId);
+		//DatacenterBrokerUtility.printCloudletJobIdMessage(cloudletJobId);
 
-		DatacenterBrokerUtility.printTotalCloudletMipsInAllVmsInAllDC(simulationTime,
-		lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, datacenterList);
+		//DatacenterBrokerUtility.printTotalCloudletMipsInAllVmsInAllDC(simulationTime,
+		//lastCloudletArrivalTimeAllDC, lastCloudletMipsListAllDC, lastVmIdListAllDC, datacenterList);
 
-		DatacenterBrokerUtility.printNumOfExecutingCloudletsInAllDC(datacenterList);
+		//DatacenterBrokerUtility.printNumOfExecutingCloudletsInAllDC(datacenterList);
 
         if (cloudletJobId == 1) { // if the cloudlet's job id is 1 it will be executed in a vm in datacenter 1
             Datacenter datacenter = datacenterList.get(0);
@@ -211,7 +211,7 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
              */
             if (lastCloudletArrivalTimeDC1 == simulationTime) {
                 // if a vm in this datacenter is free then assign the cloudlet to that vm
-                System.out.println("Subsequent cloudlet arriving at the same time");
+                //System.out.println("Subsequent cloudlet arriving at the same time");
                 mappedVm = datacenterVmList.stream()
                         .filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
                          && DatacenterBrokerUtility.getNumOfWaitingCloudlets(vm) == 0 && !lastVmIdListDC1.contains(vm.getId()))
@@ -230,10 +230,10 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             }
             if (mappedVm != Vm.NULL) { // if there is a free vm
                 lastVmIdDC1 = mappedVm.getId(); // keep track of the id of a mapped vm
-                System.out.println("A free Vm was found");
+                //System.out.println("A free Vm was found");
             }
             else { // if there is no free vm
-                System.out.println("No free vm was found so round robin is done.");
+                //System.out.println("No free vm was found so round robin is done.");
 
                 copyCurrentVmIndexDC1 = currentVmIndexDC1;
                 mappedVm = datacenterVmList.get(currentVmIndexDC1);
@@ -242,7 +242,7 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             }
             /* the line below is just for printing to the console and makes sure that the index that's printed correspondes to the actual 
             index of an arraylist (index starts at 0 and ends at arrayListSize - 1) */
-            System.out.println("The index of the current vm mapped in round robin is: " + copyCurrentVmIndexDC1);
+            //System.out.println("The index of the current vm mapped in round robin is: " + copyCurrentVmIndexDC1);
             lastCloudletArrivalTimeDC1 = simulationTime;
             lastCloudletMipsListDC1.add(cloudlet.getLength());
             lastVmIdListDC1.add(lastVmIdDC1);
@@ -261,7 +261,7 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             */
             if (lastCloudletArrivalTimeDC2 == simulationTime) {
                 // if a vm in this datacenter is free then assign the cloudlet to that vm
-                System.out.println("Subsequent cloudlet arriving at the same time");
+                //System.out.println("Subsequent cloudlet arriving at the same time");
                 mappedVm = datacenterVmList.stream()
                         .filter(vm -> DatacenterBrokerUtility.getNumOfExecutingCloudlets(vm) == 0
                         && DatacenterBrokerUtility.getNumOfWaitingCloudlets(vm) == 0 && !lastVmIdListDC2.contains(vm.getId()))
@@ -280,10 +280,10 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             }
             if (mappedVm != Vm.NULL) { // if there is a free vm
                 lastVmIdDC2 = mappedVm.getId(); // keep track of the id of a mapped vm
-                System.out.println("A free Vm was found");
+                //System.out.println("A free Vm was found");
             }
             else { // if there is no free vm
-                System.out.println("No free vm was found so round robin is done.");
+                //System.out.println("No free vm was found so round robin is done.");
 
                 copyCurrentVmIndexDC2 = currentVmIndexDC2;
                 mappedVm = datacenterVmList.get(currentVmIndexDC2);
@@ -292,7 +292,7 @@ public class DatacenterBrokerRoundRobinMap extends DatacenterBrokerSimple {
             }
             /* the line below is just for printing to the console and makes sure that the index that's printed correspondes to the actual 
             index of an arraylist (index starts at 0 and ends at arrayListSize - 1) */
-            System.out.println("The index of the current vm mapped in round robin is: " + copyCurrentVmIndexDC2);
+            //System.out.println("The index of the current vm mapped in round robin is: " + copyCurrentVmIndexDC2);
             lastCloudletArrivalTimeDC2 = simulationTime;
             lastCloudletMipsListDC2.add(cloudlet.getLength());
             lastVmIdListDC2.add(lastVmIdDC2);

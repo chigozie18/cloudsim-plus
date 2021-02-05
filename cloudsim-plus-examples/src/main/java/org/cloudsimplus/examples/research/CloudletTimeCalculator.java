@@ -119,6 +119,8 @@ public class CloudletTimeCalculator {
 
     int jobIdCloudletLength = jobIdList.size();
 
+    System.out.println("\nNumber of cloudlets with job id " + jobId + ": "  + jobIdCloudletLength);
+
     for (int i = 0; i < jobIdCloudletLength; i++) {
       averageTurnaroundTime = averageTurnaroundTime.add((BigDecimal.valueOf(jobIdList.get(i).getFinishTime())
       .subtract(BigDecimal.valueOf(jobIdList.get(i).getLastDatacenterArrivalTime()))));
