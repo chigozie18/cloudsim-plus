@@ -53,7 +53,7 @@ public class Scenario4 {
 		datacenter1 = CloudCreator.createDatacenter(simulation, hostList2, 1);  // creates a datacenter and it's hosts      
 
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-		broker0 = new DatacenterBrokerRoundRobinMap(simulation); 
+		broker0 = new DatacenterBrokerBestMap(simulation); 
 
 		vmList = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part1/Scenario4/Datacenter1_Vms.csv");		      
 		vmList2 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part1/Scenario4/Datacenter2_Vms.csv");		      

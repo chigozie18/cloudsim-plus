@@ -44,7 +44,7 @@ public class Scenario8 {
 	private Scenario8() {
 
 		simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
-		simulation.terminateAt(1000);
+		simulation.terminateAt(6200);
 		// Creates a list of hosts 
 		hostList = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload3/Part2/Scenario8/Datacenter1_Hosts.csv");
 		hostList2 = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload3/Part2/Scenario8/Datacenter2_Hosts.csv");

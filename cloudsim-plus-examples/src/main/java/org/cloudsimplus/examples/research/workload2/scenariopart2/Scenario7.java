@@ -44,7 +44,7 @@ public class Scenario7 {
 	private Scenario7() {
 
 		simulation = new CloudSim();  // Creates the CloudSim simulation and internally creates a CloudInformationService
-		simulation.terminateAt(1000);
+		simulation.terminateAt(4000);
 		// Creates a list of hosts 
 		hostList = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part2/Scenario7/Datacenter1_Hosts.csv");
 		hostList2 = CloudCreator.createHostsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part2/Scenario7/Datacenter2_Hosts.csv");
@@ -55,7 +55,7 @@ public class Scenario7 {
 		datacenter2 = CloudCreator.createDatacenter(simulation, hostList3, 1);  // creates a datacenter and it's hosts      
 
 		// Creates a broker that is a software acting on behalf of a cloud customer to manage his/her VMs and Cloudlets
-		broker0 = new DatacenterBrokerBestMap2(simulation); 
+		broker0 = new DatacenterBrokerRoundRobinMap2(simulation); 
 
 		vmList = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part2/Scenario7/Datacenter1_Vms.csv");		      
 		vmList2 = CloudCreator.createVmsFromFile(workingDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part2/Scenario7/Datacenter2_Vms.csv");		

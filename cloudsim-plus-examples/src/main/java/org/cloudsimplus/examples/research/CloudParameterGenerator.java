@@ -21,8 +21,8 @@ public class CloudParameterGenerator {
 
 	public static void main(String[] args) {
 
-		String filePath = localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part1/Scenario1/Datacenter2_Cloudlets.csv";
-		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 450, 1, 5000, 15000, 1000, 0, 600, 2);
+		String filePath = localDirectory + "/cloudsim-plus-examples/Test_Data/Research Scenarios/Workload2/Part2/Scenario8/Datacenter1_Cloudlets.csv";
+		CloudParameterGenerator.generateRandomCloudletParameters(filePath, 450, 1, 5000, 15000, 1000, 0, 600, 1);
 		// For full utilization model cloudlets the last two parameters can ignored and can be any value hence the two zeros	
 	}
 
